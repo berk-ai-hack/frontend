@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Mic, Check, RotateCcw, Send, Volume2 } from "lucide-react";
+import { ArrowLeft, Mic, Check, RotateCcw, Send, Volume2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
@@ -12,6 +12,8 @@ const GradingPreview = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [hasRecording, setHasRecording] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const [professorInput, setProfessorInput] = useState("");
+  const [isModifyingFeedback, setIsModifyingFeedback] = useState(false);
 
   const {
     assignmentName = "Programming Assignment 1: Hello World",
@@ -131,6 +133,102 @@ const GradingPreview = () => {
       title: "Feedback Cleared",
       description: "You can now provide new feedback.",
     });
+  };
+
+  const handleAskAIToModify = async () => {
+    if (!professorInput.trim()) {
+      toast({
+        title: "Input Required",
+        description: "Please enter your modification request.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!savedAIFeedback) {
+      toast({
+        title: "No AI Feedback",
+        description: "No AI feedback available to modify.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsModifyingFeedback(true);
+
+    const maxRetries = 5;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Modifying AI feedback (Attempt ${attempt}/${maxRetries})`);
+        console.log('Professor input:', professorInput);
+        console.log('Initial feedback:', savedAIFeedback);
+
+        // Make actual HTTP call to prompt_redo API with FormData
+        // Similar to Python: data={'professor_input': professorInput, 'initial_feedback': savedAIFeedback}
+        const formData = new FormData();
+        
+        // Add the data fields (equivalent to Python's data parameter)
+        formData.append('professor_input', professorInput);
+        formData.append('initial_feedback', savedAIFeedback);
+        
+        const response = await fetch('http://localhost:5000/api/prompt_redo', {
+          method: 'POST',
+          body: formData
+          // Note: Don't set Content-Type header - browser will set it automatically with boundary for multipart/form-data
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('API Response:', result);
+
+        const modifiedFeedback = result.feedback || result.response || 'Modified feedback generated successfully';
+
+        // If we reach here, the API call was successful
+        console.log(`Successfully modified AI feedback on attempt ${attempt}`);
+
+        // Update the AI feedback with the modified version
+        const feedbackData = JSON.parse(localStorage.getItem(`autoGradingFeedback_${assignmentId}`) || '{}');
+        feedbackData[currentStudent - 1] = modifiedFeedback;
+        localStorage.setItem(`autoGradingFeedback_${assignmentId}`, JSON.stringify(feedbackData));
+
+        // Force a re-render by updating the component state
+        window.location.reload();
+
+        toast({
+          title: "Feedback Modified",
+          description: "AI feedback has been updated based on your input.",
+        });
+
+        setProfessorInput("");
+        return; // Exit the retry loop on success
+
+      } catch (error) {
+        lastError = error as Error;
+        console.error(`Attempt ${attempt} failed for AI feedback modification:`, error);
+        
+        // If this is not the last attempt, wait a bit before retrying
+        if (attempt < maxRetries) {
+          const retryDelay = 1000 + Math.random() * 2000; // 1-3 second delay between retries
+          console.log(`Retrying in ${Math.round(retryDelay)}ms...`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+        }
+      }
+    }
+
+    // If we reach here, all attempts failed
+    console.error(`All ${maxRetries} attempts failed for AI feedback modification`);
+    toast({
+      title: "Modification Failed",
+      description: `Failed to modify AI feedback after ${maxRetries} attempts. Please try again.`,
+      variant: "destructive",
+    });
+
+    setIsModifyingFeedback(false);
   };
 
   return (
@@ -520,6 +618,37 @@ const GradingPreview = () => {
                 <CardContent className="flex flex-col h-full">
                   {/* Recording Controls */}
                   <div className="space-y-4">
+                    {/* AI Feedback Modification Section */}
+                    {savedAIFeedback && (
+                      <div className="space-y-3 p-4 border border-gray-200 rounded-lg bg-gray-50/50">
+                        <h4 className="text-sm font-medium text-gray-900">Modify AI Feedback</h4>
+                        <div className="space-y-2">
+                          <textarea
+                            value={professorInput}
+                            onChange={(e) => setProfessorInput(e.target.value)}
+                            placeholder="Enter your modification request for the AI feedback..."
+                            className="w-full p-2 text-sm border border-gray-300 rounded-md resize-none"
+                            rows={3}
+                          />
+                          <Button
+                            onClick={handleAskAIToModify}
+                            disabled={!professorInput.trim() || isModifyingFeedback}
+                            className="w-full py-2 text-sm"
+                            style={{ backgroundColor: "#0077fe", color: "white" }}
+                          >
+                            {isModifyingFeedback ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Modifying...
+                              </>
+                            ) : (
+                              "Ask AI to Modify"
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
                     {!hasRecording ? (
                       <div className="text-center">
                         <Button

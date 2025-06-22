@@ -149,7 +149,7 @@ const Assignment = () => {
     for (let i = 0; i < students.length; i++) {
       try {
         const result = await autoGradeStudent(i, students[i]);
-        if (result.success && result.feedback) {
+        if (result.success) {
           // Save the AI feedback
           updateAutoGradingFeedback(prev => ({ ...prev, [i]: result.feedback }));
         }
@@ -173,28 +173,36 @@ const Assignment = () => {
         console.log('Grading criteria:', gradingCriteria);
         console.log('PDF file:', `/essays/essay${studentIndex + 1}.pdf`);
 
-        // Simulate API call to prompt_initial
-        // In a real implementation, this would call your actual API
-        const result = await new Promise<{ success: boolean; feedback?: string; error?: string }>((resolve, reject) => {
-          setTimeout(() => {
-            // Simulate API response with higher failure rate for testing retry logic
-            if (Math.random() > 0.3) { // 70% success rate
-              // Simulate AI-generated feedback
-              const feedback = generateMockFeedback(student.name, studentIndex + 1, gradingCriteria);
-              resolve({ success: true, feedback });
-            } else {
-              resolve({ success: false, error: `API call failed on attempt ${attempt}` });
-            }
-          }, 2000 + Math.random() * 3000); // Random delay between 2-5 seconds
+        // Make actual HTTP call to prompt_initial API with file upload
+        // Similar to Python: files={'pdf_file': (test_pdf_path, pdf_file, 'application/pdf')}
+        const formData = new FormData();
+        
+        // Fetch the PDF file from the public directory
+        const pdfResponse = await fetch(`/essays/essay${studentIndex + 1}.pdf`);
+        const pdfBlob = await pdfResponse.blob();
+        
+        // Add the PDF file to FormData (equivalent to Python's files parameter)
+        formData.append('pdf_file', pdfBlob, `essay${studentIndex + 1}.pdf`);
+        
+        // Add the explanation data (equivalent to Python's data parameter)
+        formData.append('explanation', gradingCriteria);
+        
+        const response = await fetch('http://localhost:5000/api/prompt_initial', {
+          method: 'POST',
+          body: formData
+          // Note: Don't set Content-Type header - browser will set it automatically with boundary for multipart/form-data
         });
 
-        if (result.success && result.feedback) {
-          // If we reach here, the API call was successful
-          console.log(`Successfully auto-graded student ${studentIndex + 1} on attempt ${attempt}`);
-          return { success: true, feedback: result.feedback };
-        } else {
-          throw new Error(result.error || 'API call failed');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+
+        const result = await response.json();
+        console.log('API Response:', result);
+
+        // If we reach here, the API call was successful
+        console.log(`Successfully auto-graded student ${studentIndex + 1} on attempt ${attempt}`);
+        return { success: true, feedback: result.feedback || result.response || 'Feedback generated successfully' };
 
       } catch (error) {
         lastError = error as Error;
@@ -212,66 +220,6 @@ const Assignment = () => {
     // If we reach here, all attempts failed
     console.error(`All ${maxRetries} attempts failed for student ${studentIndex + 1}`);
     throw lastError || new Error('Auto-grading failed after all retry attempts');
-  };
-
-  // Helper function to generate mock AI feedback
-  const generateMockFeedback = (studentName: string, studentNumber: number, criteria: string) => {
-    const feedbackTemplates = [
-      `**Positive Aspects:**
-- ${studentName} demonstrates strong analytical thinking in their essay
-- The argument structure is well-organized and logical
-- Good use of evidence to support claims
-- Writing style is clear and engaging
-
-**Areas for Improvement:**
-- Some claims could be supported with more specific examples
-- Consider expanding on the counter-arguments
-- The conclusion could be more comprehensive
-
-**Suggestions:**
-- Review the grading criteria: "${criteria}"
-- Focus on strengthening the weakest arguments
-- Great potential for improvement in future assignments
-
-**Grade Recommendation:** ${Math.floor(Math.random() * 20) + 75}/100`,
-
-      `**Strengths:**
-- Excellent understanding of the core concepts
-- ${studentName} shows creativity in their approach
-- Strong technical skills demonstrated
-- Good attention to detail
-
-**Weaknesses:**
-- Some sections lack depth of analysis
-- Could benefit from more critical thinking
-- Formatting could be improved
-
-**Recommendations:**
-- Based on criteria: "${criteria}"
-- Consider peer review for future assignments
-- Focus on developing stronger conclusions
-
-**Grade Recommendation:** ${Math.floor(Math.random() * 25) + 70}/100`,
-
-      `**Outstanding Work:**
-- ${studentName} exceeds expectations in several areas
-- Exceptional clarity of expression
-- Innovative approach to the problem
-- Comprehensive coverage of the topic
-
-**Minor Issues:**
-- A few technical errors that can be easily corrected
-- Some formatting inconsistencies
-
-**Overall Assessment:**
-- Criteria evaluation: "${criteria}"
-- Excellent work that shows real understanding
-- Ready for advanced level challenges
-
-**Grade Recommendation:** ${Math.floor(Math.random() * 15) + 80}/100`
-    ];
-
-    return feedbackTemplates[studentNumber % feedbackTemplates.length];
   };
 
   return (
