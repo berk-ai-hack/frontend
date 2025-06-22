@@ -8,29 +8,17 @@ import {
   CheckCircle,
   Clock as ClockIcon,
   AlertCircle,
-  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Navigation from "@/components/Navigation";
-import { useState, useEffect } from "react";
+
 
 const Class = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const [processingAssignments, setProcessingAssignments] = useState<
-    Set<number>
-  >(new Set([5])); // Assignment 5 is processing
-
-  // Simulate processing completion after 3 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setProcessingAssignments(new Set());
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, []);
+  // No longer need processing state since we'll show static "Pending" status
 
   // Function to get class details with localStorage persistence
   const getClassDetails = () => {
@@ -517,14 +505,12 @@ const Class = () => {
                                       {assignment.points} pts
                                     </span>
                                   </div>
-                                  {processingAssignments.has(assignment.id) ? (
-                                    <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium flex items-center">
-                                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                      Processing
+                                  {assignment.id === 5 ? (
+                                    <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+                                      Pending
                                     </span>
                                   ) : (
-                                    (assignment.aiStatus === "completed" ||
-                                      assignment.id === 5) && (
+                                    assignment.aiStatus === "completed" && (
                                       <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
                                         Initial Autograding Done
                                       </span>
@@ -630,14 +616,12 @@ const Class = () => {
                                       {assignment.points} pts
                                     </span>
                                   </div>
-                                  {processingAssignments.has(assignment.id) ? (
-                                    <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium flex items-center">
-                                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                      Processing
+                                  {assignment.id === 5 ? (
+                                    <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">
+                                      Pending
                                     </span>
                                   ) : (
-                                    (assignment.aiStatus === "completed" ||
-                                      assignment.id === 5) && (
+                                    assignment.aiStatus === "completed" && (
                                       <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
                                         Initial Autograding Done
                                       </span>
