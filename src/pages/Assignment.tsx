@@ -1,5 +1,13 @@
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, FileText, Play, CheckCircle, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  FileText,
+  Play,
+  CheckCircle,
+  Loader2,
+  XCircle,
+  AlertCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -14,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import Navigation from "@/components/Navigation";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "@/components/ui/use-toast";
+import { API_ENDPOINTS } from "@/config/api";
 
 const Assignment = () => {
   const { id } = useParams();
@@ -335,14 +344,11 @@ const Assignment = () => {
         // Add the explanation data (equivalent to Python's data parameter)
         formData.append("explanation", gradingCriteria);
 
-        const response = await fetch(
-          "http://localhost:5000/api/prompt_initial",
-          {
-            method: "POST",
-            body: formData,
-            // Note: Don't set Content-Type header - browser will set it automatically with boundary for multipart/form-data
-          }
-        );
+        const response = await fetch(API_ENDPOINTS.PROMPT_INITIAL, {
+          method: "POST",
+          body: formData,
+          // Note: Don't set Content-Type header - browser will set it automatically with boundary for multipart/form-data
+        });
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
