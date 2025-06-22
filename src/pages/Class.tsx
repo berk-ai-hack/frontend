@@ -32,8 +32,38 @@ const Class = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const { className = "Linear Algebra", classCode = "MATH54" } =
-    location.state || {};
+  // Function to get class details with localStorage persistence
+  const getClassDetails = () => {
+    const stateData = location.state as { className?: string; classCode?: string } | null;
+    
+    if (stateData && stateData.className && stateData.classCode) {
+      // Save to localStorage when we have valid state
+      const classDetails = {
+        className: stateData.className,
+        classCode: stateData.classCode,
+      };
+      localStorage.setItem(`class_details_${id}`, JSON.stringify(classDetails));
+      return classDetails;
+    }
+    
+    // Try to load from localStorage
+    const savedData = localStorage.getItem(`class_details_${id}`);
+    if (savedData) {
+      try {
+        return JSON.parse(savedData);
+      } catch (error) {
+        console.error('Error parsing class details from localStorage:', error);
+      }
+    }
+    
+    // Fallback defaults
+    return {
+      className: "Linear Algebra",
+      classCode: "MATH54"
+    };
+  };
+
+  const { className, classCode } = getClassDetails();
 
   // Define assignments based on class type
   const getAssignments = () => {
@@ -457,6 +487,7 @@ const Class = () => {
                                   className: className,
                                   classCode: classCode,
                                   assignmentId: assignment.id,
+                                  classId: id,
                                 },
                               })
                             }
@@ -569,6 +600,7 @@ const Class = () => {
                                   className: className,
                                   classCode: classCode,
                                   assignmentId: assignment.id,
+                                  classId: id,
                                 },
                               })
                             }
