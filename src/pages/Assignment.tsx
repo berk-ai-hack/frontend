@@ -6,7 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import Navigation from "@/components/Navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { toast } from "@/components/ui/use-toast";
 
 const Assignment = () => {
   const { id } = useParams();
@@ -43,11 +44,6 @@ const Assignment = () => {
     return `${month} ${day}`;
   };
 
-  // Check if this assignment is fully graded and approved
-  // First 4 assignments (Problem Set 1, Quiz 1, Problem Set 2, Midterm) are fully approved
-  // Last assignment (Problem Set 3) is only autograded but not teacher approved
-  const isFullyGraded = assignmentId <= 4;
-
   // Generate 5 dummy students with realistic submission dates
   const students = Array.from({ length: 5 }, (_, index) => ({
     id: index + 1,
@@ -62,15 +58,8 @@ const Assignment = () => {
     submittedAt: `2024-05-${String(
       Math.max(20, 30 - Math.floor(index / 2))
     ).padStart(2, "0")} 11:30 PM`,
-    status: isFullyGraded ? "graded" : "pending",
+    status: "pending",
   }));
-
-  const pendingStudents = students.filter(
-    (student) => student.status === "pending"
-  );
-  const gradedCount = students.filter(
-    (student) => student.status === "graded"
-  ).length;
 
   // Helper function to save auto-grading states to localStorage
   const saveAutoGradingStates = (states: { [key: number]: 'idle' | 'processing' | 'completed' | 'error' }) => {
@@ -91,6 +80,68 @@ const Assignment = () => {
   const clearAutoGradingFeedback = () => {
     localStorage.removeItem(`autoGradingFeedback_${assignmentId}`);
   };
+
+  // Function to extract grade from AI feedback
+  const extractGrade = (feedback: string) => {
+    console.log('Extracting grade from feedback:', feedback);
+    const gradeMatch = feedback.match(/Grade:\s*(.*)/i);
+    console.log('Grade match result:', gradeMatch);
+    if (gradeMatch) {
+      const grade = gradeMatch[1].trim(); // Returns everything after "Grade:" trimmed
+      // Remove any characters after the closing parenthesis
+      const cleanGrade = grade.replace(/\).*$/, ')');
+      return cleanGrade;
+    }
+    return null;
+  };
+
+  // Function to save grades to localStorage
+  const saveGrades = (grades: { [key: number]: string }) => {
+    localStorage.setItem(`autoGradingGrades_${assignmentId}`, JSON.stringify(grades));
+  };
+
+  // Function to load grades from localStorage
+  const loadGrades = () => {
+    try {
+      const gradesData = localStorage.getItem(`autoGradingGrades_${assignmentId}`);
+      return gradesData ? JSON.parse(gradesData) : {};
+    } catch (error) {
+      console.error('Error loading grades:', error);
+      return {};
+    }
+  };
+
+  // Load saved grades
+  const [grades, setGrades] = useState<{ [key: number]: string }>(loadGrades);
+
+  // Function to reload grades from localStorage (memoized)
+  const reloadGrades = useCallback(() => {
+    try {
+      const gradesData = localStorage.getItem(`autoGradingGrades_${assignmentId}`);
+      if (gradesData) {
+        setGrades(JSON.parse(gradesData));
+      }
+    } catch (error) {
+      console.error('Error reloading grades:', error);
+    }
+  }, [assignmentId]);
+
+  // Effect to reload grades when component mounts or assignmentId changes
+  useEffect(() => {
+    reloadGrades();
+  }, [assignmentId]);
+
+  // Effect to reload grades when page becomes active (user navigates back)
+  useEffect(() => {
+    const handleFocus = () => {
+      reloadGrades();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [assignmentId]);
 
   // Wrapper function to update auto-grading states and save them
   const updateAutoGradingStates = (updater: (prev: { [key: number]: 'idle' | 'processing' | 'completed' | 'error' }) => { [key: number]: 'idle' | 'processing' | 'completed' | 'error' }) => {
@@ -116,12 +167,14 @@ const Assignment = () => {
   };
 
   const handleResetAutoGradingStates = () => {
-    if (window.confirm('Are you sure you want to clear all auto-grading results? This action cannot be undone.')) {
-      clearAutoGradingStates();
-      clearAutoGradingFeedback();
-      setAutoGradingStates({});
-      setAutoGradingFeedback({});
-    }
+    clearAutoGradingStates();
+    clearAutoGradingFeedback();
+    setGrades({});
+    localStorage.removeItem(`autoGradingGrades_${assignmentId}`);
+    toast({
+      title: "Results Cleared",
+      description: "Auto-grading results have been cleared.",
+    });
   };
 
   const handleStartAutoGrading = async () => {
@@ -152,6 +205,16 @@ const Assignment = () => {
         if (result.success) {
           // Save the AI feedback
           updateAutoGradingFeedback(prev => ({ ...prev, [i]: result.feedback }));
+          
+          // Extract and save the grade
+          const extractedGrade = extractGrade(result.feedback);
+          if (extractedGrade) {
+            setGrades(prev => {
+              const newGrades = { ...prev, [i]: extractedGrade };
+              saveGrades(newGrades);
+              return newGrades;
+            });
+          }
         }
         updateAutoGradingStates(prev => ({ ...prev, [i]: 'completed' }));
       } catch (error) {
@@ -266,13 +329,13 @@ const Assignment = () => {
               {/* Grade Button */}
               <div className="flex items-center space-x-3">
                 <span className="text-sm text-gray-600">
-                  {gradedCount}/{students.length} graded
+                  {students.length} students
                 </span>
                 <Button
                   onClick={handleAutoGradeClick}
-                  disabled={gradedCount === students.length || isAutoGrading}
+                  disabled={students.length === 0 || isAutoGrading}
                   className={`px-4 py-2 ${
-                    gradedCount === students.length || isAutoGrading
+                    students.length === 0 || isAutoGrading
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-green-600 text-white hover:bg-green-700"
                   }`}
@@ -293,17 +356,17 @@ const Assignment = () => {
                         assignmentName,
                         className,
                         classCode,
-                        studentName: students[gradedCount].name,
-                        currentStudent: gradedCount + 1,
+                        studentName: students[students.length - 1].name,
+                        currentStudent: students.length,
                         totalStudents: students.length,
                         assignmentId,
-                        essayNumber: gradedCount + 1,
+                        essayNumber: students.length,
                       },
                     })
                   }
-                  disabled={gradedCount === students.length}
+                  disabled={students.length === 0}
                   className={`px-4 py-2 ${
-                    gradedCount === students.length
+                    students.length === 0
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-blue-600 text-white hover:bg-blue-700"
                   }`}
@@ -337,7 +400,7 @@ const Assignment = () => {
                     className="text-3xl font-bold"
                     style={{ color: "#FDB515" }}
                   >
-                    {gradedCount}
+                    {students.length}
                   </p>
                   <p className="text-sm text-gray-600">
                     {isProcessing ? (
@@ -348,11 +411,6 @@ const Assignment = () => {
                     ) : (
                       <>
                         Graded
-                        {isFullyGraded && (
-                          <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium">
-                            Approved
-                          </span>
-                        )}
                       </>
                     )}
                   </p>
@@ -366,20 +424,6 @@ const Assignment = () => {
                   <p
                     className="text-3xl font-bold"
                     style={{ color: "#0077fe" }}
-                  >
-                    {pendingStudents.length}
-                  </p>
-                  <p className="text-sm text-gray-600">Pending</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border border-gray-200 bg-white/90 backdrop-blur-sm shadow-md">
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <p
-                    className="text-3xl font-bold"
-                    style={{ color: "#FDB515" }}
                   >
                     100
                   </p>
@@ -432,6 +476,9 @@ const Assignment = () => {
                         Submitted
                       </th>
                       <th className="text-left py-3 px-4 font-medium text-gray-900">
+                        Grade
+                      </th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-900">
                         Status
                       </th>
                     </tr>
@@ -476,6 +523,15 @@ const Assignment = () => {
                           {humanizeDate(student.submittedAt)}
                         </td>
                         <td className="py-3 px-4">
+                          {grades[index] ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 font-semibold">
+                              {grades[index]}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-sm">-</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
                           {isProcessing ? (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                               <Loader2 className="h-3 w-3 mr-1 animate-spin" />
@@ -506,11 +562,6 @@ const Assignment = () => {
                               {student.status === "graded" ? (
                                 <>
                                   Graded
-                                  {isFullyGraded && (
-                                    <span className="ml-1 bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full text-xs font-medium">
-                                      Approved
-                                    </span>
-                                  )}
                                 </>
                               ) : (
                                 "Pending"

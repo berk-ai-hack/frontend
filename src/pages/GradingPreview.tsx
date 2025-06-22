@@ -44,22 +44,31 @@ const GradingPreview = () => {
   // Load saved AI feedback for this student
   const getSavedAIFeedback = () => {
     try {
-      const savedFeedback = localStorage.getItem(`autoGradingFeedback_${assignmentId}`);
-      if (savedFeedback) {
-        const feedbackData = JSON.parse(savedFeedback);
-        // Get feedback for current student (currentStudent - 1 because it's 0-indexed in storage)
-        return feedbackData[currentStudent - 1] || null;
-      }
+      const feedbackData = JSON.parse(localStorage.getItem(`autoGradingFeedback_${assignmentId}`) || '{}');
+      return feedbackData[currentStudent - 1] || null;
     } catch (error) {
       console.error('Error loading saved AI feedback:', error);
+      return null;
+    }
+  };
+
+  // Function to extract grade from AI feedback
+  const extractGrade = (feedback: string) => {
+    const gradeMatch = feedback.match(/Final Grade:\s*([A-Z][+-]?\s*\([^)]+\))/i);
+    if (gradeMatch) {
+      return gradeMatch[1]; // Returns "B+ (87/100)" from "Final Grade: B+ (87/100)"
     }
     return null;
   };
 
-  const savedAIFeedback = getSavedAIFeedback();
+  // Function to remove grade line from feedback
+  const removeGradeLine = (feedback: string) => {
+    return feedback.replace(/Final Grade:\s*[A-Z][+-]?\s*\([^)]+\)/gi, '').trim();
+  };
 
-  // Use saved AI feedback if available, otherwise show empty state
-  const aiFeedback = savedAIFeedback || null;
+  const savedAIFeedback = getSavedAIFeedback();
+  const extractedGrade = savedAIFeedback ? extractGrade(savedAIFeedback) : null;
+  const aiFeedback = savedAIFeedback ? removeGradeLine(savedAIFeedback) : null;
 
   const handleStartRecording = () => {
     setIsRecording(true);
@@ -118,11 +127,55 @@ const GradingPreview = () => {
   };
 
   const handleAcceptFeedback = () => {
+    // Extract and save the grade from current AI feedback
+    if (savedAIFeedback) {
+      const currentGrade = extractGrade(savedAIFeedback);
+      if (currentGrade) {
+        const gradesData = JSON.parse(localStorage.getItem(`autoGradingGrades_${assignmentId}`) || '{}');
+        gradesData[currentStudent - 1] = currentGrade;
+        localStorage.setItem(`autoGradingGrades_${assignmentId}`, JSON.stringify(gradesData));
+      }
+    }
+
+    // Mark the student as graded by updating auto-grading states
+    const autoGradingStatesData = JSON.parse(localStorage.getItem(`autoGradingStates_${assignmentId}`) || '{}');
+    autoGradingStatesData[currentStudent - 1] = 'completed';
+    localStorage.setItem(`autoGradingStates_${assignmentId}`, JSON.stringify(autoGradingStatesData));
+
     toast({
       title: "Feedback Accepted",
       description: `AI feedback accepted for ${studentName}.`,
     });
-    handleSubmitFeedback();
+    
+    // Navigate to next student or back to assignment if last student
+    setTimeout(() => {
+      if (currentStudent < totalStudents) {
+        // Generate next student name (for demo purposes)
+        const studentNames = [
+          "Emma Johnson",
+          "Liam Smith",
+          "Olivia Brown",
+          "Noah Davis",
+          "Ava Wilson",
+        ];
+
+        navigate("/grading-preview", {
+          state: {
+            ...location.state,
+            studentName:
+              studentNames[currentStudent] ||
+              `Student ${currentStudent + 1}`,
+            currentStudent: currentStudent + 1,
+          },
+        });
+      } else {
+        navigate(`/assignment/${assignmentId}`); // Go back to assignment page
+        toast({
+          title: "Grading Complete",
+          description: "All students have been graded for this assignment.",
+        });
+      }
+    }, 1500);
   };
 
   const handleRestart = () => {
@@ -196,6 +249,14 @@ const GradingPreview = () => {
         feedbackData[currentStudent - 1] = modifiedFeedback;
         localStorage.setItem(`autoGradingFeedback_${assignmentId}`, JSON.stringify(feedbackData));
 
+        // Extract and save the updated grade
+        const updatedGrade = extractGrade(modifiedFeedback);
+        if (updatedGrade) {
+          const gradesData = JSON.parse(localStorage.getItem(`autoGradingGrades_${assignmentId}`) || '{}');
+          gradesData[currentStudent - 1] = updatedGrade;
+          localStorage.setItem(`autoGradingGrades_${assignmentId}`, JSON.stringify(gradesData));
+        }
+
         // Force a re-render by updating the component state
         window.location.reload();
 
@@ -253,12 +314,12 @@ const GradingPreview = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-3">
                 <Button
-                  onClick={() => navigate(-1)}
+                  onClick={() => navigate(`/assignment/${assignmentId}`)}
                   variant="ghost"
                   className="text-gray-600 hover:text-gray-900"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Assignment
+                  Previous
                 </Button>
                 {currentStudent > 1 && (
                   <Button
@@ -533,78 +594,141 @@ const GradingPreview = () => {
 
           {/* Right Half - Split into Top and Bottom */}
           <div className="w-1/2 flex flex-col">
-            {/* Top Right - AI Feedback */}
-            <div className="h-1/2 bg-white/90 backdrop-blur-sm border-b border-gray-200">
-              <Card className="h-full border border-gray-200 bg-white/90 backdrop-blur-sm rounded-none">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-                    <div
-                      className="h-2 w-2 rounded-full mr-2"
-                      style={{ backgroundColor: "#0077fe" }}
-                    ></div>
-                    AI-Generated Feedback
-                    {savedAIFeedback && (
-                      <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Auto-Graded
-                      </span>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="h-full overflow-y-auto">
-                  <div className="prose prose-sm max-w-none">
-                    {aiFeedback ? (
-                      <div className="text-sm text-gray-700">
-                        {aiFeedback.split('\n').map((line, index) => {
-                          const trimmedLine = line.trim();
-                          
-                          // Skip lines that start with + (these are formatting artifacts)
-                          if (trimmedLine.startsWith('+')) {
-                            return null;
-                          }
-                          
-                          // Handle bold headers (text between **)
-                          if (trimmedLine.includes('**')) {
-                            const formattedLine = trimmedLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                            return (
-                              <div 
-                                key={index} 
-                                className="font-bold text-gray-900 mt-4 mb-2"
-                                dangerouslySetInnerHTML={{ __html: formattedLine }}
-                              />
-                            );
-                          }
-                          // Handle bullet points
-                          else if (trimmedLine.startsWith('-')) {
-                            return (
-                              <div key={index} className="flex items-start ml-4 mb-1">
-                                <span className="text-gray-900 font-bold mr-2">•</span>
-                                <span className="text-gray-700">{trimmedLine.substring(1).trim()}</span>
-                              </div>
-                            );
-                          }
-                          // Handle empty lines
-                          else if (trimmedLine === '') {
-                            return <div key={index} className="h-2" />;
-                          }
-                          // Handle regular text
-                          else {
-                            return (
-                              <div key={index} className="text-gray-700 mb-1">
-                                {trimmedLine}
-                              </div>
-                            );
-                          }
-                        })}
+            {/* Top Right - AI Feedback and Grade */}
+            <div className="h-1/2 bg-white/90 backdrop-blur-sm border-b border-gray-200 flex">
+              {/* AI Feedback Section */}
+              <div className="flex-1">
+                <Card className="h-full border border-gray-200 bg-white/90 backdrop-blur-sm rounded-none">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
+                      <div
+                        className="h-2 w-2 rounded-full mr-2"
+                        style={{ backgroundColor: "#0077fe" }}
+                      ></div>
+                      AI-Generated Feedback
+                      {savedAIFeedback && (
+                        <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Auto-Graded
+                        </span>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="h-full overflow-y-auto">
+                    <div className="prose prose-sm max-w-none">
+                      {aiFeedback ? (
+                        <div className="text-sm text-gray-700">
+                          {aiFeedback.split('\n').map((line, index) => {
+                            const trimmedLine = line.trim();
+                            const originalLine = line;
+                            
+                            // Skip lines that start with + (these are formatting artifacts)
+                            if (trimmedLine.startsWith('+')) {
+                              return null;
+                            }
+                            
+                            // Skip lines that start with -- (these are formatting artifacts)
+                            if (trimmedLine.startsWith('--')) {
+                              return null;
+                            }
+                            
+                            // Handle markdown headings (#, ##, ###)
+                            if (originalLine.startsWith('#')) {
+                              const headingMatch = originalLine.match(/^(#{1,3})\s*(.+)$/);
+                              if (headingMatch) {
+                                const [, hashes, text] = headingMatch;
+                                const level = hashes.length;
+                                
+                                // Apply different styling based on heading level
+                                const headingClasses = {
+                                  1: 'text-xl font-bold text-gray-900 mt-6 mb-3', // # heading
+                                  2: 'text-lg font-semibold text-gray-900 mt-5 mb-2', // ## heading
+                                  3: 'text-base font-medium text-gray-900 mt-4 mb-2' // ### heading
+                                };
+                                
+                                return (
+                                  <div 
+                                    key={index} 
+                                    className={headingClasses[level as keyof typeof headingClasses]}
+                                  >
+                                    {text}
+                                  </div>
+                                );
+                              }
+                            }
+                            
+                            // Handle bold text (text between **)
+                            if (trimmedLine.includes('**')) {
+                              const formattedLine = trimmedLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                              // Remove any remaining asterisks that weren't part of bold formatting
+                              const cleanLine = formattedLine.replace(/\*/g, '');
+                              return (
+                                <div 
+                                  key={index} 
+                                  className="text-gray-700 mb-1"
+                                  dangerouslySetInnerHTML={{ __html: cleanLine }}
+                                />
+                              );
+                            }
+                            // Handle bullet points
+                            else if (trimmedLine.startsWith('-')) {
+                              return (
+                                <div key={index} className="flex items-start ml-4 mb-1">
+                                  <span className="text-gray-900 font-bold mr-2">•</span>
+                                  <span className="text-gray-700">{trimmedLine.substring(1).trim()}</span>
+                                </div>
+                              );
+                            }
+                            // Handle empty lines
+                            else if (trimmedLine === '') {
+                              return <div key={index} className="h-2" />;
+                            }
+                            // Handle regular text
+                            else {
+                              return (
+                                <div key={index} className="text-gray-700 mb-1">
+                                  {trimmedLine}
+                                </div>
+                              );
+                            }
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          <p className="text-sm">No AI feedback available</p>
+                          <p className="text-xs mt-1">Run auto-grading to generate feedback</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Grade Section */}
+              {extractedGrade && (
+                <div className="w-48 border-l border-gray-200">
+                  <Card className="h-full border border-gray-200 bg-white/90 backdrop-blur-sm rounded-none">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
+                        <div
+                          className="h-2 w-2 rounded-full mr-2"
+                          style={{ backgroundColor: "#FDB515" }}
+                        ></div>
+                        Rec. Grade
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-gray-900 mb-1">
+                          {extractedGrade}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          AI Recommendation
+                        </div>
                       </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <p className="text-sm">No AI feedback available</p>
-                        <p className="text-xs mt-1">Run auto-grading to generate feedback</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </div>
 
             {/* Bottom Right - Feedback Controls */}
