@@ -10,9 +10,9 @@ const Assignment = () => {
   const navigate = useNavigate();
   
   const { 
-    assignmentName = "Programming Assignment 1: Hello World", 
-    className = "Introduction to Computer Science",
-    classCode = "CS 101"
+    assignmentName = "Problem Set 1: Vector Operations and Linear Combinations", 
+    className = "Linear Algebra",
+    classCode = "MATH54"
   } = location.state || {};
 
   // Generate 50 dummy students

@@ -10,7 +10,7 @@ const Dashboard = () => {
   const classes = [
     {
       id: 1,
-      name: "Introduction to Reading and Composition",
+      name: "Reading and Composition",
       code: "ENGR1B",
       students: 45,
       assignments: 8,
@@ -19,8 +19,8 @@ const Dashboard = () => {
     },
     {
       id: 2,
-      name: "Introduction to Comparative Literature",
-      code: "COMLIT100",
+      name: "Linear Algebra",
+      code: "MATH54",
       students: 32,
       assignments: 6,
       pendingGrading: 3,
@@ -28,8 +28,8 @@ const Dashboard = () => {
     },
     {
       id: 3,
-      name: "18th and 19th Century Literature",
-      code: "COMLIT154",
+      name: "Comparative Literature",
+      code: "COMLIT100",
       students: 28,
       assignments: 5,
       pendingGrading: 0,

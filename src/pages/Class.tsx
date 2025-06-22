@@ -9,22 +9,22 @@ const Class = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  const { className = "Introduction to Computer Science", classCode = "CS 101" } = location.state || {};
+  const { className = "Linear Algebra", classCode = "MATH54" } = location.state || {};
 
   const assignments = [
     {
       id: 1,
-      name: "Programming Assignment 1: Hello World",
+      name: "Problem Set 1: Vector Operations and Linear Combinations",
       dueDate: "2024-09-15",
       totalStudents: 45,
       submitted: 43,
       graded: 38,
-      type: "Programming",
+      type: "Problem Set",
       points: 100
     },
     {
       id: 2,
-      name: "Quiz 1: Basic Concepts",
+      name: "Quiz 1: Matrix Operations and Gaussian Elimination",
       dueDate: "2024-09-22",
       totalStudents: 45,
       submitted: 45,
@@ -34,12 +34,12 @@ const Class = () => {
     },
     {
       id: 3,
-      name: "Programming Assignment 2: Variables and Functions",
+      name: "Problem Set 2: Linear Transformations and Determinants",
       dueDate: "2024-09-29",
       totalStudents: 45,
       submitted: 41,
       graded: 35,
-      type: "Programming",
+      type: "Problem Set",
       points: 150
     },
     {
@@ -54,21 +54,23 @@ const Class = () => {
     },
     {
       id: 5,
-      name: "Programming Assignment 3: Control Structures",
+      name: "Problem Set 3: Eigenvalues and Eigenvectors",
       dueDate: "2024-10-20",
       totalStudents: 45,
       submitted: 39,
       graded: 15,
-      type: "Programming",
+      type: "Problem Set",
       points: 175
     }
   ];
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'Programming': return 'bg-blue-100 text-blue-800';
+      case 'Problem Set': return 'bg-blue-100 text-blue-800';
       case 'Quiz': return 'bg-green-100 text-green-800';
       case 'Exam': return 'bg-red-100 text-red-800';
+      case 'Essay': return 'bg-purple-100 text-purple-800';
+      case 'Research Paper': return 'bg-indigo-100 text-indigo-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
