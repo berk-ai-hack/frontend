@@ -111,7 +111,10 @@ const GradingPreview = () => {
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <GraduationCap className="h-8 w-8 text-blue-600" />
+              <GraduationCap 
+                className="h-8 w-8 text-blue-600 cursor-pointer hover:text-blue-700 transition-colors" 
+                onClick={() => navigate('/dashboard')}
+              />
               <span className="ml-2 text-xl font-bold text-gray-900">Teacher's Pet</span>
             </div>
             <div className="flex items-center space-x-4">
@@ -160,23 +163,109 @@ const GradingPreview = () => {
               <p className="text-sm text-gray-600">Assignment: {assignmentName}</p>
             </div>
             
-            {/* PDF Placeholder */}
-            <div className="flex-1 bg-gray-100 flex items-center justify-center">
-              <div className="text-center p-8">
-                <div className="bg-white shadow-lg rounded-lg p-8 max-w-md">
-                  <div className="text-left space-y-4 font-mono text-sm">
-                    <div className="text-gray-600">// Hello World Program</div>
-                    <div className="text-blue-600">public class HelloWorld {`{`}</div>
-                    <div className="pl-4 text-blue-600">public static void main(String[] args) {`{`}</div>
-                    <div className="pl-8 text-green-600">System.out.println("Hello, World!");</div>
-                    <div className="pl-4 text-blue-600">{`}`}</div>
-                    <div className="text-blue-600">{`}`}</div>
-                  </div>
-                  <div className="mt-6 p-4 bg-gray-50 rounded text-xs text-gray-600">
-                    <strong>Simulated PDF Content</strong><br />
-                    This represents the student's submitted assignment. In a real implementation, 
-                    this would be rendered using PDF.js or a similar library.
-                  </div>
+            {/* AI Hackathon PDF Guide */}
+            <div className="flex-1 bg-gray-100 overflow-y-auto p-4">
+              <div className="bg-white shadow-lg rounded-lg p-6 max-w-full mx-auto">
+                <div className="text-center mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">AI Hackathon Guide</h1>
+                  <p className="text-sm text-gray-600">Student Submission - Building an AI-Powered Application</p>
+                </div>
+                
+                <div className="space-y-6 text-sm text-gray-800">
+                  <section>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-3">1. Project Overview</h2>
+                    <p className="leading-relaxed mb-3">
+                      Our team developed an AI-powered study assistant that helps students organize their coursework 
+                      and provides personalized learning recommendations. The application integrates natural language 
+                      processing to understand student queries and machine learning algorithms to adapt to individual 
+                      learning patterns.
+                    </p>
+                    <div className="bg-blue-50 p-3 rounded border-l-4 border-blue-400">
+                      <p className="font-medium text-blue-800">Tech Stack:</p>
+                      <p className="text-blue-700">React.js, Python, OpenAI API, TensorFlow, MongoDB</p>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-3">2. Implementation Strategy</h2>
+                    <div className="space-y-3">
+                      <div>
+                        <h3 className="font-medium text-gray-800">Frontend Development</h3>
+                        <p className="text-gray-700">
+                          Built a responsive user interface using React.js with Material-UI components. 
+                          Implemented real-time chat functionality for student-AI interactions.
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-800">Backend Architecture</h3>
+                        <p className="text-gray-700">
+                          Developed RESTful APIs using Python Flask. Integrated OpenAI's GPT-4 for 
+                          natural language understanding and response generation.
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-800">Machine Learning Pipeline</h3>
+                        <p className="text-gray-700">
+                          Implemented a recommendation system using collaborative filtering and 
+                          content-based algorithms to suggest relevant study materials.
+                        </p>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-3">3. Key Features</h2>
+                    <ul className="list-disc list-inside space-y-2 text-gray-700">
+                      <li>Intelligent chatbot for answering academic questions</li>
+                      <li>Personalized study schedule generation</li>
+                      <li>Progress tracking and analytics dashboard</li>
+                      <li>Collaborative study group formation</li>
+                      <li>Resource recommendation engine</li>
+                    </ul>
+                  </section>
+
+                  <section>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-3">4. Challenges & Solutions</h2>
+                    <div className="bg-yellow-50 p-4 rounded">
+                      <p className="font-medium text-yellow-800 mb-2">Challenge: API Rate Limiting</p>
+                      <p className="text-yellow-700 text-sm">
+                        Solution: Implemented caching mechanisms and request queuing to optimize API usage.
+                      </p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded mt-3">
+                      <p className="font-medium text-green-800 mb-2">Challenge: Data Privacy</p>
+                      <p className="text-green-700 text-sm">
+                        Solution: Implemented end-to-end encryption and GDPR-compliant data handling.
+                      </p>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-3">5. Results & Impact</h2>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-3 bg-gray-50 rounded">
+                        <p className="text-2xl font-bold text-blue-600">85%</p>
+                        <p className="text-xs text-gray-600">User Satisfaction</p>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 rounded">
+                        <p className="text-2xl font-bold text-green-600">200+</p>
+                        <p className="text-xs text-gray-600">Beta Users</p>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-3">6. Future Roadmap</h2>
+                    <p className="text-gray-700">
+                      Plans include expanding to multiple educational domains, implementing voice 
+                      interaction capabilities, and developing mobile applications for iOS and Android.
+                    </p>
+                  </section>
+                </div>
+                
+                <div className="mt-6 p-4 bg-gray-50 rounded text-xs text-gray-600 text-center">
+                  <strong>Student Submission PDF</strong><br />
+                  This represents a comprehensive hackathon project documentation submitted by the student.
                 </div>
               </div>
             </div>

@@ -45,7 +45,10 @@ const Assignment = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <GraduationCap className="h-8 w-8 text-blue-600" />
+              <GraduationCap 
+                className="h-8 w-8 text-blue-600 cursor-pointer hover:text-blue-700 transition-colors" 
+                onClick={() => navigate('/dashboard')}
+              />
               <span className="ml-2 text-xl font-bold text-gray-900">Teacher's Pet</span>
             </div>
             <div className="flex items-center space-x-4">
