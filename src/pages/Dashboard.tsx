@@ -14,8 +14,8 @@ const Dashboard = () => {
       code: "ENGR1B",
       students: 45,
       assignments: 8,
-      pendingGrading: 6,
-      semester: "Fall 2025",
+      pendingGrading: 1,
+      semester: "Spring 2025",
     },
     {
       id: 2,
@@ -23,8 +23,8 @@ const Dashboard = () => {
       code: "MATH54",
       students: 32,
       assignments: 6,
-      pendingGrading: 3,
-      semester: "Fall 2025",
+      pendingGrading: 1,
+      semester: "Spring 2025",
     },
     {
       id: 3,
@@ -32,8 +32,8 @@ const Dashboard = () => {
       code: "COMLIT100",
       students: 28,
       assignments: 5,
-      pendingGrading: 0,
-      semester: "Fall 2025",
+      pendingGrading: 1,
+      semester: "Spring 2025",
     },
   ];
 

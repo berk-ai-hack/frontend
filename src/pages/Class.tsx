@@ -1,13 +1,36 @@
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, FileText, Calendar, Users, Clock } from "lucide-react";
+import {
+  ArrowLeft,
+  FileText,
+  Calendar,
+  Users,
+  Clock,
+  CheckCircle,
+  Clock as ClockIcon,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Navigation from "@/components/Navigation";
+import { useState, useEffect } from "react";
 
 const Class = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const [processingAssignments, setProcessingAssignments] = useState<
+    Set<number>
+  >(new Set([5])); // Assignment 5 is processing
+
+  // Simulate processing completion after 3 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setProcessingAssignments(new Set());
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const { className = "Linear Algebra", classCode = "MATH54" } =
     location.state || {};
@@ -16,54 +39,67 @@ const Class = () => {
     {
       id: 1,
       name: "Problem Set 1: Vector Operations and Linear Combinations",
-      dueDate: "2024-09-15",
+      dueDate: "2024-05-06",
       totalStudents: 45,
-      submitted: 43,
-      graded: 38,
+      submitted: 45,
+      graded: 45,
       type: "Problem Set",
       points: 100,
+      aiStatus: "completed",
+      gradingStatus: "approved",
     },
     {
       id: 2,
       name: "Quiz 1: Matrix Operations and Gaussian Elimination",
-      dueDate: "2024-09-22",
+      dueDate: "2024-05-13",
       totalStudents: 45,
       submitted: 45,
       graded: 45,
       type: "Quiz",
       points: 50,
+      aiStatus: "completed",
+      gradingStatus: "approved",
     },
     {
       id: 3,
       name: "Problem Set 2: Linear Transformations and Determinants",
-      dueDate: "2024-09-29",
+      dueDate: "2024-05-20",
       totalStudents: 45,
-      submitted: 41,
-      graded: 35,
+      submitted: 45,
+      graded: 45,
       type: "Problem Set",
       points: 150,
+      aiStatus: "completed",
+      gradingStatus: "approved",
     },
     {
       id: 4,
       name: "Midterm Exam",
-      dueDate: "2024-10-13",
+      dueDate: "2024-05-27",
       totalStudents: 45,
-      submitted: 44,
-      graded: 20,
+      submitted: 45,
+      graded: 45,
       type: "Exam",
       points: 200,
+      aiStatus: "completed",
+      gradingStatus: "approved",
     },
     {
       id: 5,
       name: "Problem Set 3: Eigenvalues and Eigenvectors",
-      dueDate: "2024-10-20",
+      dueDate: "2024-06-03",
       totalStudents: 45,
-      submitted: 39,
-      graded: 15,
+      submitted: 45,
+      graded: 0,
       type: "Problem Set",
       points: 175,
+      aiStatus: "in_progress",
+      gradingStatus: "autograded",
     },
   ];
+
+  // Reverse order to show most recent first
+  const sortedAssignments = [...assignments].reverse();
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -87,6 +123,52 @@ const Class = () => {
     if (percentage === 100) return "bg-green-500";
     if (percentage >= 75) return "bg-yellow-500";
     return "bg-red-500";
+  };
+
+  const getAIStatusIcon = (status: string) => {
+    switch (status) {
+      case "completed":
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case "in_progress":
+        return <ClockIcon className="h-4 w-4 text-yellow-600" />;
+      case "not_started":
+        return <AlertCircle className="h-4 w-4 text-gray-400" />;
+      default:
+        return <AlertCircle className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const getAIStatusText = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "AI Graded";
+      case "in_progress":
+        return "AI Grading...";
+      case "not_started":
+        return "Not Started";
+      default:
+        return "Unknown";
+    }
+  };
+
+  const getAIStatusColor = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "text-green-600";
+      case "in_progress":
+        return "text-yellow-600";
+      case "not_started":
+        return "text-gray-400";
+      default:
+        return "text-gray-400";
+    }
+  };
+
+  const humanizeDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const month = date.toLocaleDateString("en-US", { month: "short" });
+    const day = date.getDate();
+    return `${month} ${day}`;
   };
 
   return (
@@ -203,109 +285,242 @@ const Class = () => {
           </div>
 
           {/* Assignments List */}
-          <Card className="border border-gray-200 bg-white/90 backdrop-blur-sm shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold text-gray-900">
-                Assignments
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {assignments.map((assignment) => (
-                  <div
-                    key={assignment.id}
-                    className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer bg-white/50"
-                    onClick={() =>
-                      navigate(`/assignment/${assignment.id}`, {
-                        state: {
-                          assignmentName: assignment.name,
-                          className: className,
-                          classCode: classCode,
-                        },
-                      })
-                    }
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {assignment.name}
-                        </h3>
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${getTypeColor(
-                            assignment.type
-                          )}`}
-                        >
-                          {assignment.type}
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-600">
-                          Due: {assignment.dueDate}
-                        </p>
-                        <p className="text-sm font-medium text-gray-900">
-                          {assignment.points} points
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-gray-900">
-                          {assignment.submitted}
-                        </p>
-                        <p className="text-sm text-gray-600">Submitted</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-gray-900">
-                          {assignment.graded}
-                        </p>
-                        <p className="text-sm text-gray-600">Graded</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-gray-900">
-                          {assignment.submitted - assignment.graded}
-                        </p>
-                        <p className="text-sm text-gray-600">Pending</p>
-                      </div>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="mb-4">
-                      <div className="flex justify-between text-sm text-gray-600 mb-1">
-                        <span>Grading Progress</span>
-                        <span>
-                          {Math.round(
-                            (assignment.graded / assignment.submitted) * 100
-                          )}
-                          %
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full ${getProgressColor(
-                            assignment.graded,
-                            assignment.submitted
-                          )}`}
-                          style={{
-                            width: `${
-                              (assignment.graded / assignment.submitted) * 100
-                            }%`,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    <Button
-                      className="w-full"
-                      style={{ backgroundColor: "#0077fe", color: "white" }}
+          <div className="max-w-7xl mx-auto">
+            <Card className="border border-gray-200 bg-white/90 backdrop-blur-sm shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-xl font-bold text-gray-900">
+                  Assignments
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Homework/Problem Sets Column */}
+                  <div>
+                    <h3
+                      className="text-lg font-semibold text-gray-900 mb-4"
+                      style={{ color: "#0077fe" }}
                     >
-                      View Assignment Details
-                    </Button>
+                      Homeworks
+                    </h3>
+                    <div className="space-y-3">
+                      {sortedAssignments
+                        .filter(
+                          (assignment) => assignment.type === "Problem Set"
+                        )
+                        .map((assignment) => (
+                          <div
+                            key={assignment.id}
+                            className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer bg-white/50"
+                            onClick={() =>
+                              navigate(`/assignment/${assignment.id}`, {
+                                state: {
+                                  assignmentName: assignment.name,
+                                  className: className,
+                                  classCode: classCode,
+                                  assignmentId: assignment.id,
+                                },
+                              })
+                            }
+                          >
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-base font-semibold text-gray-900 truncate">
+                                  {assignment.name}
+                                </h3>
+                                <div className="flex items-center justify-between mt-1">
+                                  <div className="flex items-center space-x-2">
+                                    <span
+                                      className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(
+                                        assignment.type
+                                      )}`}
+                                    >
+                                      {assignment.type}
+                                    </span>
+                                    <span className="text-xs text-gray-600">
+                                      Due: {humanizeDate(assignment.dueDate)} •{" "}
+                                      {assignment.points} pts
+                                    </span>
+                                  </div>
+                                  {processingAssignments.has(assignment.id) ? (
+                                    <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium flex items-center">
+                                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                      Processing
+                                    </span>
+                                  ) : (
+                                    (assignment.aiStatus === "completed" ||
+                                      assignment.id === 5) && (
+                                      <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
+                                        Initial Autograding Done
+                                      </span>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Minimal Progress Bar */}
+                            <div className="mb-3">
+                              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                                <span>Grading Progress</span>
+                                <span>
+                                  {assignment.graded === 0
+                                    ? 0
+                                    : Math.round(
+                                        (assignment.graded /
+                                          assignment.submitted) *
+                                          100
+                                      )}
+                                  %
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                <div
+                                  className={`h-1.5 rounded-full ${getProgressColor(
+                                    assignment.graded,
+                                    assignment.submitted
+                                  )}`}
+                                  style={{
+                                    width: `${
+                                      assignment.graded === 0
+                                        ? 0
+                                        : (assignment.graded /
+                                            assignment.submitted) *
+                                          100
+                                    }%`,
+                                  }}
+                                ></div>
+                              </div>
+                            </div>
+
+                            <Button
+                              className="w-full text-sm py-2"
+                              style={{
+                                backgroundColor: "#0077fe",
+                                color: "white",
+                              }}
+                            >
+                              View Assignment Details
+                            </Button>
+                          </div>
+                        ))}
+                    </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+
+                  {/* Quizzes/Tests/Exams Column */}
+                  <div>
+                    <h3
+                      className="text-lg font-semibold text-gray-900 mb-4"
+                      style={{ color: "#FDB515" }}
+                    >
+                      Assessments
+                    </h3>
+                    <div className="space-y-3">
+                      {sortedAssignments
+                        .filter((assignment) =>
+                          ["Quiz", "Exam", "Test"].includes(assignment.type)
+                        )
+                        .map((assignment) => (
+                          <div
+                            key={assignment.id}
+                            className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer bg-white/50"
+                            onClick={() =>
+                              navigate(`/assignment/${assignment.id}`, {
+                                state: {
+                                  assignmentName: assignment.name,
+                                  className: className,
+                                  classCode: classCode,
+                                  assignmentId: assignment.id,
+                                },
+                              })
+                            }
+                          >
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-base font-semibold text-gray-900 truncate">
+                                  {assignment.name}
+                                </h3>
+                                <div className="flex items-center justify-between mt-1">
+                                  <div className="flex items-center space-x-2">
+                                    <span
+                                      className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(
+                                        assignment.type
+                                      )}`}
+                                    >
+                                      {assignment.type}
+                                    </span>
+                                    <span className="text-xs text-gray-600">
+                                      Due: {humanizeDate(assignment.dueDate)} •{" "}
+                                      {assignment.points} pts
+                                    </span>
+                                  </div>
+                                  {processingAssignments.has(assignment.id) ? (
+                                    <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium flex items-center">
+                                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                      Processing
+                                    </span>
+                                  ) : (
+                                    (assignment.aiStatus === "completed" ||
+                                      assignment.id === 5) && (
+                                      <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
+                                        Initial Autograding Done
+                                      </span>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Minimal Progress Bar */}
+                            <div className="mb-3">
+                              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                                <span>Grading Progress</span>
+                                <span>
+                                  {assignment.graded === 0
+                                    ? 0
+                                    : Math.round(
+                                        (assignment.graded /
+                                          assignment.submitted) *
+                                          100
+                                      )}
+                                  %
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                <div
+                                  className={`h-1.5 rounded-full ${getProgressColor(
+                                    assignment.graded,
+                                    assignment.submitted
+                                  )}`}
+                                  style={{
+                                    width: `${
+                                      assignment.graded === 0
+                                        ? 0
+                                        : (assignment.graded /
+                                            assignment.submitted) *
+                                          100
+                                    }%`,
+                                  }}
+                                ></div>
+                              </div>
+                            </div>
+
+                            <Button
+                              className="w-full text-sm py-2"
+                              style={{
+                                backgroundColor: "#0077fe",
+                                color: "white",
+                              }}
+                            >
+                              View Assignment Details
+                            </Button>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

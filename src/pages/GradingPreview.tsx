@@ -20,6 +20,8 @@ const GradingPreview = () => {
     studentName = "Emma Johnson",
     currentStudent = 1,
     totalPending = 12,
+    totalStudents = 50,
+    assignmentId = 1,
   } = location.state || {};
 
   const aiFeedback = `
@@ -70,11 +72,66 @@ const GradingPreview = () => {
 
     // Simulate moving to next student
     setTimeout(() => {
-      if (currentStudent < totalPending) {
+      if (currentStudent < totalStudents) {
+        // Generate next student name (for demo purposes)
+        const studentNames = [
+          "Emma Johnson",
+          "Liam Smith",
+          "Olivia Brown",
+          "Noah Davis",
+          "Ava Wilson",
+          "Isabella Garcia",
+          "Sophia Martinez",
+          "Charlotte Anderson",
+          "Amelia Taylor",
+          "Mia Thomas",
+          "Harper Jackson",
+          "Evelyn White",
+          "Abigail Harris",
+          "Emily Martin",
+          "Elizabeth Thompson",
+          "Sofia Garcia",
+          "Avery Rodriguez",
+          "Ella Lewis",
+          "Scarlett Lee",
+          "Victoria Walker",
+          "Madison Hall",
+          "Luna Allen",
+          "Grace Young",
+          "Chloe Hernandez",
+          "Penelope King",
+          "Layla Wright",
+          "Riley Lopez",
+          "Zoey Hill",
+          "Nora Scott",
+          "Lily Green",
+          "Eleanor Adams",
+          "Hannah Baker",
+          "Lillian Gonzalez",
+          "Addison Nelson",
+          "Aubrey Carter",
+          "Ellie Mitchell",
+          "Stella Perez",
+          "Natalie Roberts",
+          "Zoe Turner",
+          "Leah Phillips",
+          "Hazel Campbell",
+          "Violet Parker",
+          "Aurora Evans",
+          "Savannah Edwards",
+          "Audrey Collins",
+          "Brooklyn Stewart",
+          "Bella Sanchez",
+          "Claire Morris",
+          "Skylar Rogers",
+          "Lucy Reed",
+        ];
+
         navigate("/grading-preview", {
           state: {
             ...location.state,
-            studentName: "Liam Smith", // Next student
+            studentName:
+              studentNames[currentStudent] || `Student ${currentStudent + 1}`,
             currentStudent: currentStudent + 1,
           },
         });
@@ -125,17 +182,100 @@ const GradingPreview = () => {
         {/* Progress Bar */}
         <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200">
           <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-2">
-            <div className="flex justify-between text-sm text-gray-600 mb-1">
-              <span>{assignmentName}</span>
-              <span>
-                {Math.round((currentStudent / totalPending) * 100)}% Complete
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-3">
+                <Button
+                  onClick={() => navigate(-1)}
+                  variant="ghost"
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Assignment
+                </Button>
+                {currentStudent > 1 && (
+                  <Button
+                    onClick={() => {
+                      const studentNames = [
+                        "Emma Johnson",
+                        "Liam Smith",
+                        "Olivia Brown",
+                        "Noah Davis",
+                        "Ava Wilson",
+                        "Isabella Garcia",
+                        "Sophia Martinez",
+                        "Charlotte Anderson",
+                        "Amelia Taylor",
+                        "Mia Thomas",
+                        "Harper Jackson",
+                        "Evelyn White",
+                        "Abigail Harris",
+                        "Emily Martin",
+                        "Elizabeth Thompson",
+                        "Sofia Garcia",
+                        "Avery Rodriguez",
+                        "Ella Lewis",
+                        "Scarlett Lee",
+                        "Victoria Walker",
+                        "Madison Hall",
+                        "Luna Allen",
+                        "Grace Young",
+                        "Chloe Hernandez",
+                        "Penelope King",
+                        "Layla Wright",
+                        "Riley Lopez",
+                        "Zoey Hill",
+                        "Nora Scott",
+                        "Lily Green",
+                        "Eleanor Adams",
+                        "Hannah Baker",
+                        "Lillian Gonzalez",
+                        "Addison Nelson",
+                        "Aubrey Carter",
+                        "Ellie Mitchell",
+                        "Stella Perez",
+                        "Natalie Roberts",
+                        "Zoe Turner",
+                        "Leah Phillips",
+                        "Hazel Campbell",
+                        "Violet Parker",
+                        "Aurora Evans",
+                        "Savannah Edwards",
+                        "Audrey Collins",
+                        "Brooklyn Stewart",
+                        "Bella Sanchez",
+                        "Claire Morris",
+                        "Skylar Rogers",
+                        "Lucy Reed",
+                      ];
+
+                      navigate("/grading-preview", {
+                        state: {
+                          ...location.state,
+                          studentName:
+                            studentNames[currentStudent - 2] ||
+                            `Student ${currentStudent - 1}`,
+                          currentStudent: currentStudent - 1,
+                        },
+                      });
+                    }}
+                    variant="ghost"
+                    className="text-gray-600 hover:text-gray-900"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Previous Student
+                  </Button>
+                )}
+              </div>
+              <span className="text-sm text-gray-600">
+                Student {currentStudent} of {totalStudents} (
+                {Math.round((currentStudent / totalStudents) * 100)}% Complete)
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-1">
               <div
                 className="h-1 rounded-full transition-all duration-300"
                 style={{
-                  width: `${(currentStudent / totalPending) * 100}%`,
+                  width: `${(currentStudent / totalStudents) * 100}%`,
                   backgroundColor: "#0077fe",
                 }}
               ></div>

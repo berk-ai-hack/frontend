@@ -31,7 +31,7 @@ const NotFound = () => {
         <Navigation />
 
         <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
-          <div className="text-center">
+      <div className="text-center">
             <h1
               className="text-6xl font-bold mb-4"
               style={{ color: "#0077fe" }}
@@ -44,7 +44,7 @@ const NotFound = () => {
               className="text-white"
               style={{ backgroundColor: "#FDB515" }}
             >
-              Return to Home
+          Return to Home
             </Button>
           </div>
         </div>
