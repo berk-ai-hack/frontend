@@ -48,9 +48,9 @@ const Dashboard = () => {
               <span className="ml-2 text-xl font-bold text-gray-900">Teacher's Pet</span>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-gray-700">Prof. Sarah Johnson</span>
+              <span className="text-gray-700">Karina Palau</span>
               <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">SJ</span>
+                <span className="text-white text-sm font-medium">KP</span>
               </div>
             </div>
           </div>
