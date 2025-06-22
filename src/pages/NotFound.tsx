@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import Navigation from "@/components/Navigation";
 
 const NotFound = () => {
   const location = useLocation();
@@ -27,27 +28,7 @@ const NotFound = () => {
       {/* Content */}
       <div className="relative z-10">
         {/* Header */}
-        <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div
-                className="flex items-center cursor-pointer"
-                onClick={() => navigate("/")}
-              >
-                <img
-                  src="/tpdog.svg"
-                  alt="Teacher's Pet Dog"
-                  className="h-8 w-auto mr-2"
-                />
-                <img
-                  src="/teacher_s pet logo.svg"
-                  alt="Teacher's Pet Logo"
-                  className="h-8 w-auto"
-                />
-              </div>
-            </div>
-          </div>
-        </nav>
+        <Navigation />
 
         <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
           <div className="text-center">

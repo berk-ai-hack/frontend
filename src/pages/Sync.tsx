@@ -1,29 +1,36 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Download, Video, ArrowRight, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { CheckCircle, Loader2 } from "lucide-react";
+import Navigation from "@/components/Navigation";
+
+type LMS = "canvas" | "brightspace" | null;
 
 const Sync = () => {
-  const [syncing, setSyncing] = useState({ canvas: false, bcourses: false });
-  const [synced, setSynced] = useState({ canvas: false, bcourses: false });
   const navigate = useNavigate();
+  const [selectedLMS, setSelectedLMS] = useState<LMS>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [synced, setSynced] = useState(false);
 
-  const handleSync = (type: "canvas" | "bcourses") => {
-    setSyncing((prev) => ({ ...prev, [type]: true }));
-
-    setTimeout(() => {
-      setSyncing((prev) => ({ ...prev, [type]: false }));
-      setSynced((prev) => ({ ...prev, [type]: true }));
-      toast({
-        title: `${type === "canvas" ? "Canvas" : "bCourses"} Sync Complete`,
-        description: "Your data has been successfully imported.",
-      });
-    }, 3000);
+  const handleSelectLMS = (lms: "canvas" | "brightspace") => {
+    setSelectedLMS(lms);
+    setSynced(false); // Reset sync status when switching
   };
 
-  const canContinue = synced.canvas || synced.bcourses;
+  const handleSync = async () => {
+    if (!selectedLMS) return;
+
+    setSyncing(true);
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    setSyncing(false);
+    setSynced(true);
+  };
+
+  const handleContinue = () => {
+    navigate("/dashboard");
+  };
 
   return (
     <div className="min-h-screen bg-white text-gray-900 relative">
@@ -38,160 +45,189 @@ const Sync = () => {
 
       {/* Content */}
       <div className="relative z-10">
-        {/* Header */}
-        <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div
-                className="flex items-center cursor-pointer"
-                onClick={() => navigate("/")}
-              >
-                <img
-                  src="/tpdog.svg"
-                  alt="Teacher's Pet Dog"
-                  className="h-8 w-auto mr-2"
-                />
-                <img
-                  src="/teacher_s pet logo.svg"
-                  alt="Teacher's Pet Logo"
-                  className="h-8 w-auto"
-                />
-              </div>
-            </div>
-          </div>
-        </nav>
+        <Navigation />
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="text-center mb-12">
-            <h1
-              className="text-3xl font-bold mb-4"
-              style={{ color: "#0077fe" }}
-            >
-              Sync Your Course Data
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-4">
+              Connect Your <span style={{ color: "#0077fe" }}>LMS</span>
             </h1>
-            <p className="text-lg text-gray-600">
-              Import your classes and assignments from your learning management
-              system
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Choose your learning management system<br></br>Sync your classes,
+              assignments, and student data
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 mb-12">
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
             {/* Canvas Sync */}
-            <Card className="shadow-lg border border-gray-200 bg-white/90 backdrop-blur-sm hover:shadow-xl transition-shadow">
-              <CardHeader className="text-center pb-4">
-                <div className="flex justify-center mb-4">
-                  <div
-                    className="p-3 rounded-full"
-                    style={{ backgroundColor: "#FDB515", opacity: 0.2 }}
-                  >
-                    <Download
-                      className="h-8 w-8"
-                      style={{ color: "#FDB515" }}
-                    />
-                  </div>
+            <Card
+              className={`transition-all duration-200 hover:shadow-lg ${
+                selectedLMS === "canvas" ? "ring-2 ring-red-500" : ""
+              } ${
+                synced && selectedLMS !== "canvas"
+                  ? "opacity-50 grayscale cursor-not-allowed"
+                  : "cursor-pointer"
+              }`}
+              onClick={() => {
+                if (!synced || selectedLMS === "canvas") {
+                  handleSelectLMS("canvas");
+                }
+              }}
+            >
+              <CardContent className="p-6">
+                <div
+                  className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                    selectedLMS === "canvas" ? "bg-red-100" : "bg-gray-100"
+                  }`}
+                >
+                  <img
+                    src="https://www.instructure.com/sites/default/files/image/2021-12/Canvas_logo_single_mark.png"
+                    alt="Canvas Logo"
+                    className="w-10 h-10"
+                    style={{ filter: "brightness(1.2) saturate(1.3)" }}
+                  />
                 </div>
-                <CardTitle className="text-xl">Canvas Integration</CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-gray-600 mb-6">
+                <CardTitle className="text-xl text-center mb-2">
+                  Canvas Integration
+                </CardTitle>
+                <p className="text-gray-600 text-center mb-4">
                   Import classes, assignments, and student rosters from Canvas
-                  LMS
                 </p>
-
-                {synced.canvas ? (
-                  <div className="flex items-center justify-center text-green-600 mb-4">
-                    <CheckCircle className="h-5 w-5 mr-2" />
-                    <span className="font-medium">Sync Complete</span>
-                  </div>
-                ) : (
-                  <Button
-                    onClick={() => handleSync("canvas")}
-                    disabled={syncing.canvas}
-                    className="w-full text-white"
-                    style={{ backgroundColor: "#FDB515" }}
-                  >
-                    {syncing.canvas ? (
-                      <div className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Syncing Canvas...
-                      </div>
-                    ) : (
-                      "Sync with Canvas"
-                    )}
-                  </Button>
-                )}
+                <div className="text-center">
+                  {synced && selectedLMS === "canvas" ? (
+                    <div className="flex items-center justify-center text-green-600">
+                      <CheckCircle className="w-5 h-5 mr-2" />
+                      <span className="text-sm font-medium">
+                        Synced Successfully
+                      </span>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className={`w-full ${
+                        selectedLMS === "canvas"
+                          ? "border-red-500 text-red-600 hover:bg-red-50"
+                          : ""
+                      }`}
+                      disabled={
+                        selectedLMS !== "canvas" ||
+                        (synced && selectedLMS !== "canvas")
+                      }
+                    >
+                      {selectedLMS === "canvas"
+                        ? "Selected"
+                        : "Click to select"}
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
-            {/* bCourses Sync */}
-            <Card className="shadow-lg border border-gray-200 bg-white/90 backdrop-blur-sm hover:shadow-xl transition-shadow">
-              <CardHeader className="text-center pb-4">
-                <div className="flex justify-center mb-4">
-                  <div
-                    className="p-3 rounded-full"
-                    style={{ backgroundColor: "#0077fe", opacity: 0.2 }}
-                  >
-                    <Video className="h-8 w-8" style={{ color: "#0077fe" }} />
+            {/* Brightspace Sync */}
+            <Card
+              className={`transition-all duration-200 hover:shadow-lg ${
+                selectedLMS === "brightspace" ? "ring-2 ring-orange-500" : ""
+              } ${
+                synced && selectedLMS !== "brightspace"
+                  ? "opacity-50 grayscale cursor-not-allowed"
+                  : "cursor-pointer"
+              }`}
+              onClick={() => {
+                if (!synced || selectedLMS === "brightspace") {
+                  handleSelectLMS("brightspace");
+                }
+              }}
+            >
+              <CardContent className="p-6">
+                <div
+                  className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                    selectedLMS === "brightspace"
+                      ? "bg-orange-100"
+                      : "bg-gray-100"
+                  }`}
+                >
+                  <div className="w-10 h-10 bg-orange-500 rounded flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">D2L</span>
                   </div>
                 </div>
-                <CardTitle className="text-xl">
+                <CardTitle className="text-xl text-center mb-2">
                   Brightspace Integration
                 </CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 text-center mb-4">
                   Import classes, assignments, and student rosters from
                   Brightspace
                 </p>
-
-                {synced.bcourses ? (
-                  <div className="flex items-center justify-center text-green-600 mb-4">
-                    <CheckCircle className="h-5 w-5 mr-2" />
-                    <span className="font-medium">Sync Complete</span>
-                  </div>
-                ) : (
-                  <Button
-                    onClick={() => handleSync("bcourses")}
-                    disabled={syncing.bcourses}
-                    className="w-full text-white"
-                    style={{ backgroundColor: "#0077fe" }}
-                  >
-                    {syncing.bcourses ? (
-                      <div className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Syncing bCourses...
-                      </div>
-                    ) : (
-                      "Sync with bCourses"
-                    )}
-                  </Button>
-                )}
+                <div className="text-center">
+                  {synced && selectedLMS === "brightspace" ? (
+                    <div className="flex items-center justify-center text-green-600">
+                      <CheckCircle className="w-5 h-5 mr-2" />
+                      <span className="text-sm font-medium">
+                        Synced Successfully
+                      </span>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className={`w-full ${
+                        selectedLMS === "brightspace"
+                          ? "border-orange-500 text-orange-600 hover:bg-orange-50"
+                          : ""
+                      }`}
+                      disabled={
+                        selectedLMS !== "brightspace" ||
+                        (synced && selectedLMS !== "brightspace")
+                      }
+                    >
+                      {selectedLMS === "brightspace"
+                        ? "Selected"
+                        : "Click to select"}
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Continue Button */}
-          <div className="text-center">
-            <Button
-              onClick={() => navigate("/dashboard")}
-              disabled={!canContinue}
-              className={`px-8 py-3 text-lg font-medium ${
-                canContinue
-                  ? "text-white"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}
-              style={canContinue ? { backgroundColor: "#FDB515" } : {}}
-            >
-              Continue to Dashboard
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+          {/* Sync Button */}
+          {selectedLMS && !synced && (
+            <div className="text-center mb-8">
+              <Button
+                onClick={handleSync}
+                disabled={syncing}
+                className="px-8 py-3 text-lg font-medium"
+                style={{
+                  backgroundColor:
+                    selectedLMS === "canvas" ? "#FF003A" : "#E17110",
+                  color: "white",
+                }}
+              >
+                {syncing ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Syncing with{" "}
+                    {selectedLMS === "canvas" ? "Canvas" : "Brightspace"}...
+                  </>
+                ) : (
+                  `Sync with ${
+                    selectedLMS === "canvas" ? "Canvas" : "Brightspace"
+                  }`
+                )}
+              </Button>
+            </div>
+          )}
 
-            {!canContinue && (
-              <p className="text-sm text-gray-500 mt-2">
-                Please sync at least one data source to continue
-              </p>
-            )}
-          </div>
+          {/* Continue Button */}
+          {synced && (
+            <div className="text-center">
+              <Button
+                onClick={handleContinue}
+                className="px-8 py-3 text-lg font-medium"
+                style={{ backgroundColor: "#0077fe", color: "white" }}
+              >
+                Continue to Dashboard
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>

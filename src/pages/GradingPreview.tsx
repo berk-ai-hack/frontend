@@ -4,6 +4,7 @@ import { ArrowLeft, Mic, Check, RotateCcw, Send, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
+import Navigation from "@/components/Navigation";
 
 const GradingPreview = () => {
   const location = useLocation();
@@ -119,45 +120,7 @@ const GradingPreview = () => {
       {/* Content */}
       <div className="relative z-10">
         {/* Header */}
-        <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200">
-          <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div
-                className="flex items-center cursor-pointer"
-                onClick={() => navigate("/")}
-              >
-                <img
-                  src="/tpdog.svg"
-                  alt="Teacher's Pet Dog"
-                  className="h-8 w-auto mr-2"
-                />
-                <img
-                  src="/teacher_s pet logo.svg"
-                  alt="Teacher's Pet Logo"
-                  className="h-8 w-auto"
-                />
-              </div>
-              <div className="flex items-center space-x-4">
-                <Button
-                  onClick={() => navigate(-1)}
-                  variant="ghost"
-                  className="text-gray-600 hover:text-gray-900"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Assignment
-                </Button>
-                <div className="text-right">
-                  <p className="text-sm text-gray-600">
-                    Student {currentStudent} of {totalPending}
-                  </p>
-                  <p className="text-sm font-medium text-gray-900">
-                    {studentName}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </nav>
+        <Navigation />
 
         {/* Progress Bar */}
         <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200">

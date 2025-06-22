@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Users, FileText, Clock, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Navigation from "@/components/Navigation";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -50,36 +51,7 @@ const Dashboard = () => {
       {/* Content */}
       <div className="relative z-10">
         {/* Header */}
-        <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div
-                className="flex items-center cursor-pointer"
-                onClick={() => navigate("/")}
-              >
-                <img
-                  src="/tpdog.svg"
-                  alt="Teacher's Pet Dog"
-                  className="h-8 w-auto mr-2"
-                />
-                <img
-                  src="/teacher_s pet logo.svg"
-                  alt="Teacher's Pet Logo"
-                  className="h-8 w-auto"
-                />
-              </div>
-              <div className="flex items-center space-x-4">
-                <span className="text-gray-700">Karina Palau</span>
-                <div
-                  className="h-8 w-8 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: "#0077fe" }}
-                >
-                  <span className="text-white text-sm font-medium">KP</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </nav>
+        <Navigation />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Page Header */}
