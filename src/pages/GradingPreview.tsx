@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Mic, Check, RotateCcw, Send, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 
@@ -13,7 +12,6 @@ const GradingPreview = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [hasRecording, setHasRecording] = useState(false);
   const [feedback, setFeedback] = useState("");
-  const [textFeedback, setTextFeedback] = useState("");
 
   const {
     assignmentName = "Programming Assignment 1: Hello World",
@@ -129,7 +127,6 @@ const GradingPreview = () => {
     setIsRecording(false);
     setHasRecording(false);
     setFeedback("");
-    setTextFeedback("");
     toast({
       title: "Feedback Cleared",
       description: "You can now provide new feedback.",
@@ -616,58 +613,6 @@ const GradingPreview = () => {
                         </div>
                       </div>
                     )}
-                  </div>
-
-                  {/* Text Feedback Section */}
-                  <div className="mt-6 pt-6 border-t border-gray-200">
-                    <h3 className="text-sm font-medium text-gray-900 mb-3">
-                      Manual Feedback Input
-                    </h3>
-                    <Textarea
-                      placeholder="Type your feedback here..."
-                      value={textFeedback}
-                      onChange={(e) => setTextFeedback(e.target.value)}
-                      className="min-h-[100px] resize-none"
-                    />
-                    <div className="flex gap-2 mt-3">
-                      <Button
-                        onClick={() => {
-                          if (textFeedback.trim()) {
-                            setFeedback(textFeedback);
-                            setHasRecording(true);
-                            toast({
-                              title: "Text Feedback Set",
-                              description: "Your text feedback has been set as the current feedback.",
-                            });
-                          } else {
-                            toast({
-                              title: "No Feedback",
-                              description: "Please enter some feedback text first.",
-                            });
-                          }
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                      >
-                        <Send className="h-4 w-4 mr-2" />
-                        Set as Feedback
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          setTextFeedback("");
-                          toast({
-                            title: "Text Cleared",
-                            description: "Text feedback has been cleared.",
-                          });
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="px-3"
-                      >
-                        Clear
-                      </Button>
-                    </div>
                   </div>
 
                   {/* Bottom Action Buttons */}

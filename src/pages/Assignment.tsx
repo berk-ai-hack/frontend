@@ -179,9 +179,9 @@ const Assignment = () => {
           setTimeout(() => {
             // Simulate API response with higher failure rate for testing retry logic
             if (Math.random() > 0.3) { // 70% success rate
-              // In real implementation, this would be the actual API response
-              // For now, simulate a successful response without feedback
-              resolve({ success: true });
+              // Simulate AI-generated feedback
+              const feedback = generateMockFeedback(student.name, studentIndex + 1, gradingCriteria);
+              resolve({ success: true, feedback });
             } else {
               resolve({ success: false, error: `API call failed on attempt ${attempt}` });
             }
@@ -193,10 +193,7 @@ const Assignment = () => {
           console.log(`Successfully auto-graded student ${studentIndex + 1} on attempt ${attempt}`);
           return { success: true, feedback: result.feedback };
         } else {
-          // For now, just return success without feedback
-          // In real implementation, this would return the actual API feedback
-          console.log(`Successfully auto-graded student ${studentIndex + 1} on attempt ${attempt}`);
-          return { success: true };
+          throw new Error(result.error || 'API call failed');
         }
 
       } catch (error) {
@@ -215,6 +212,66 @@ const Assignment = () => {
     // If we reach here, all attempts failed
     console.error(`All ${maxRetries} attempts failed for student ${studentIndex + 1}`);
     throw lastError || new Error('Auto-grading failed after all retry attempts');
+  };
+
+  // Helper function to generate mock AI feedback
+  const generateMockFeedback = (studentName: string, studentNumber: number, criteria: string) => {
+    const feedbackTemplates = [
+      `**Positive Aspects:**
+- ${studentName} demonstrates strong analytical thinking in their essay
+- The argument structure is well-organized and logical
+- Good use of evidence to support claims
+- Writing style is clear and engaging
+
+**Areas for Improvement:**
+- Some claims could be supported with more specific examples
+- Consider expanding on the counter-arguments
+- The conclusion could be more comprehensive
+
+**Suggestions:**
+- Review the grading criteria: "${criteria}"
+- Focus on strengthening the weakest arguments
+- Great potential for improvement in future assignments
+
+**Grade Recommendation:** ${Math.floor(Math.random() * 20) + 75}/100`,
+
+      `**Strengths:**
+- Excellent understanding of the core concepts
+- ${studentName} shows creativity in their approach
+- Strong technical skills demonstrated
+- Good attention to detail
+
+**Weaknesses:**
+- Some sections lack depth of analysis
+- Could benefit from more critical thinking
+- Formatting could be improved
+
+**Recommendations:**
+- Based on criteria: "${criteria}"
+- Consider peer review for future assignments
+- Focus on developing stronger conclusions
+
+**Grade Recommendation:** ${Math.floor(Math.random() * 25) + 70}/100`,
+
+      `**Outstanding Work:**
+- ${studentName} exceeds expectations in several areas
+- Exceptional clarity of expression
+- Innovative approach to the problem
+- Comprehensive coverage of the topic
+
+**Minor Issues:**
+- A few technical errors that can be easily corrected
+- Some formatting inconsistencies
+
+**Overall Assessment:**
+- Criteria evaluation: "${criteria}"
+- Excellent work that shows real understanding
+- Ready for advanced level challenges
+
+**Grade Recommendation:** ${Math.floor(Math.random() * 15) + 80}/100`
+    ];
+
+    return feedbackTemplates[studentNumber % feedbackTemplates.length];
   };
 
   return (
