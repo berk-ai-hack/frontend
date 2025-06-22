@@ -45,6 +45,16 @@ const HowItWorks = () => {
             </p>
           </div>
 
+          {/* Architecture Diagram */}
+          <div className="flex justify-center my-12">
+            <img
+              src="/arch.png"
+              alt="System Architecture Diagram"
+              className="rounded-xl max-w-full shadow-sm border"
+              style={{ maxHeight: 500 }}
+            />
+          </div>
+
           {/* Architecture Diagram - Desktop */}
           <div className="hidden lg:block relative my-24 h-[600px]">
             {/* Platforms */}
@@ -59,7 +69,9 @@ const HowItWorks = () => {
                     alt="Canvas"
                     className="w-10 h-10 mr-3"
                   />
-                  <h3 className="text-xl font-semibold text-gray-800">Canvas</h3>
+                  <h3 className="text-xl font-semibold text-gray-800">
+                    Canvas
+                  </h3>
                 </div>
                 <p className="text-sm text-gray-600 mb-4">
                   Multiple input streams are synced from your LMS.
@@ -89,7 +101,12 @@ const HowItWorks = () => {
             <div
               id="platform-tp"
               className="platform w-80 h-48"
-              style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+              }}
             >
               <div className="platform-content">
                 <div className="flex items-center mb-3">
@@ -112,7 +129,9 @@ const HowItWorks = () => {
               </div>
               <div
                 className="platform-base"
-                style={{ background: "linear-gradient(45deg, #FDB515, #facc15)" }}
+                style={{
+                  background: "linear-gradient(45deg, #FDB515, #facc15)",
+                }}
               ></div>
             </div>
 
@@ -149,7 +168,9 @@ const HowItWorks = () => {
               </div>
               <div
                 className="platform-base"
-                style={{ background: "linear-gradient(45deg, #0077fe, #3b82f6)" }}
+                style={{
+                  background: "linear-gradient(45deg, #0077fe, #3b82f6)",
+                }}
               ></div>
             </div>
 
