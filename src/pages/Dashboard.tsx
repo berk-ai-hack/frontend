@@ -10,40 +10,31 @@ const Dashboard = () => {
   const classes = [
     {
       id: 1,
-      name: "Introduction to Computer Science",
-      code: "CS 101",
+      name: "Introduction to Reading and Composition",
+      code: "ENGR1B",
       students: 45,
       assignments: 8,
-      pendingGrading: 12,
-      semester: "Fall 2024"
+      pendingGrading: 6,
+      semester: "Fall 2025"
     },
     {
       id: 2,
-      name: "Data Structures and Algorithms",
-      code: "CS 201",
+      name: "Introduction to Comparative Literature",
+      code: "COMLIT100",
       students: 32,
       assignments: 6,
-      pendingGrading: 8,
-      semester: "Fall 2024"
+      pendingGrading: 3,
+      semester: "Fall 2025"
     },
     {
       id: 3,
-      name: "Software Engineering Principles",
-      code: "CS 301",
+      name: "18th and 19th Century Literature",
+      code: "COMLIT154",
       students: 28,
       assignments: 5,
-      pendingGrading: 15,
-      semester: "Fall 2024"
+      pendingGrading: 0,
+      semester: "Fall 2025"
     },
-    {
-      id: 4,
-      name: "Database Systems",
-      code: "CS 305",
-      students: 35,
-      assignments: 7,
-      pendingGrading: 6,
-      semester: "Fall 2024"
-    }
   ];
 
   return (
@@ -143,8 +134,13 @@ const Dashboard = () => {
                     <p className="text-sm text-gray-600">{cls.code} • {cls.semester}</p>
                   </div>
                   {cls.pendingGrading > 0 && (
-                    <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                      {cls.pendingGrading} pending
+                    <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-2 rounded-full whitespace-nowrap">
+                      {cls.pendingGrading} Left
+                    </span>
+                  )}
+                  {cls.pendingGrading === 0 && (
+                    <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-2 rounded-full whitespace-nowrap">
+                      All Graded
                     </span>
                   )}
                 </div>

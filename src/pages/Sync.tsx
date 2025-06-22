@@ -97,11 +97,11 @@ const Sync = () => {
                   <Video className="h-8 w-8 text-blue-600" />
                 </div>
               </div>
-              <CardTitle className="text-xl">bCourses / Course Capture</CardTitle>
+              <CardTitle className="text-xl">Brightspace Integration</CardTitle>
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-gray-600 mb-6">
-                Import lecture recordings and course materials from bCourses
+                Import classes, assignments, and student rosters from Brightspace
               </p>
               
               {synced.bcourses ? (
