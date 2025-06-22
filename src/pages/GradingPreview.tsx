@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Mic, Check, RotateCcw, Send, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 
@@ -12,6 +13,7 @@ const GradingPreview = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [hasRecording, setHasRecording] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const [textFeedback, setTextFeedback] = useState("");
 
   const {
     assignmentName = "Programming Assignment 1: Hello World",
@@ -22,27 +24,42 @@ const GradingPreview = () => {
     totalPending = 12,
     totalStudents = 50,
     assignmentId = 1,
+    essayNumber,
   } = location.state || {};
 
-  const aiFeedback = `
-**Positive Aspects:**
-- Code structure is clean and well-organized
-- Variable naming follows good conventions
-- Proper use of comments to explain logic
-- All required functionality is implemented
+  // Determine if this is a Reading and Composition assignment
+  const isReadingAndComposition = className === "Reading and Composition";
+  
+  // Get the essay PDF path based on essayNumber (or assignmentId as fallback)
+  const getEssayPath = () => {
+    const num = essayNumber || assignmentId;
+    if (isReadingAndComposition && num >= 1 && num <= 5) {
+      return `/essays/essay${num}.pdf`;
+    }
+    return null;
+  };
 
-**Areas for Improvement:**
-- Consider using more descriptive variable names in the main function
-- The loop on line 23 could be optimized for better performance
-- Missing error handling for edge cases
+  const essayPath = getEssayPath();
 
-**Suggestions:**
-- Review the efficiency of your sorting algorithm
-- Consider adding input validation
-- Great job on following the coding style guide
+  // Load saved AI feedback for this student
+  const getSavedAIFeedback = () => {
+    try {
+      const savedFeedback = localStorage.getItem(`autoGradingFeedback_${assignmentId}`);
+      if (savedFeedback) {
+        const feedbackData = JSON.parse(savedFeedback);
+        // Get feedback for current student (currentStudent - 1 because it's 0-indexed in storage)
+        return feedbackData[currentStudent - 1] || null;
+      }
+    } catch (error) {
+      console.error('Error loading saved AI feedback:', error);
+    }
+    return null;
+  };
 
-**Grade Recommendation:** 85/100
-`;
+  const savedAIFeedback = getSavedAIFeedback();
+
+  // Use saved AI feedback if available, otherwise show empty state
+  const aiFeedback = savedAIFeedback || null;
 
   const handleStartRecording = () => {
     setIsRecording(true);
@@ -80,51 +97,6 @@ const GradingPreview = () => {
           "Olivia Brown",
           "Noah Davis",
           "Ava Wilson",
-          "Isabella Garcia",
-          "Sophia Martinez",
-          "Charlotte Anderson",
-          "Amelia Taylor",
-          "Mia Thomas",
-          "Harper Jackson",
-          "Evelyn White",
-          "Abigail Harris",
-          "Emily Martin",
-          "Elizabeth Thompson",
-          "Sofia Garcia",
-          "Avery Rodriguez",
-          "Ella Lewis",
-          "Scarlett Lee",
-          "Victoria Walker",
-          "Madison Hall",
-          "Luna Allen",
-          "Grace Young",
-          "Chloe Hernandez",
-          "Penelope King",
-          "Layla Wright",
-          "Riley Lopez",
-          "Zoey Hill",
-          "Nora Scott",
-          "Lily Green",
-          "Eleanor Adams",
-          "Hannah Baker",
-          "Lillian Gonzalez",
-          "Addison Nelson",
-          "Aubrey Carter",
-          "Ellie Mitchell",
-          "Stella Perez",
-          "Natalie Roberts",
-          "Zoe Turner",
-          "Leah Phillips",
-          "Hazel Campbell",
-          "Violet Parker",
-          "Aurora Evans",
-          "Savannah Edwards",
-          "Audrey Collins",
-          "Brooklyn Stewart",
-          "Bella Sanchez",
-          "Claire Morris",
-          "Skylar Rogers",
-          "Lucy Reed",
         ];
 
         navigate("/grading-preview", {
@@ -157,6 +129,7 @@ const GradingPreview = () => {
     setIsRecording(false);
     setHasRecording(false);
     setFeedback("");
+    setTextFeedback("");
     toast({
       title: "Feedback Cleared",
       description: "You can now provide new feedback.",
@@ -201,51 +174,6 @@ const GradingPreview = () => {
                         "Olivia Brown",
                         "Noah Davis",
                         "Ava Wilson",
-                        "Isabella Garcia",
-                        "Sophia Martinez",
-                        "Charlotte Anderson",
-                        "Amelia Taylor",
-                        "Mia Thomas",
-                        "Harper Jackson",
-                        "Evelyn White",
-                        "Abigail Harris",
-                        "Emily Martin",
-                        "Elizabeth Thompson",
-                        "Sofia Garcia",
-                        "Avery Rodriguez",
-                        "Ella Lewis",
-                        "Scarlett Lee",
-                        "Victoria Walker",
-                        "Madison Hall",
-                        "Luna Allen",
-                        "Grace Young",
-                        "Chloe Hernandez",
-                        "Penelope King",
-                        "Layla Wright",
-                        "Riley Lopez",
-                        "Zoey Hill",
-                        "Nora Scott",
-                        "Lily Green",
-                        "Eleanor Adams",
-                        "Hannah Baker",
-                        "Lillian Gonzalez",
-                        "Addison Nelson",
-                        "Aubrey Carter",
-                        "Ellie Mitchell",
-                        "Stella Perez",
-                        "Natalie Roberts",
-                        "Zoe Turner",
-                        "Leah Phillips",
-                        "Hazel Campbell",
-                        "Violet Parker",
-                        "Aurora Evans",
-                        "Savannah Edwards",
-                        "Audrey Collins",
-                        "Brooklyn Stewart",
-                        "Bella Sanchez",
-                        "Claire Morris",
-                        "Skylar Rogers",
-                        "Lucy Reed",
                       ];
 
                       navigate("/grading-preview", {
@@ -297,184 +225,213 @@ const GradingPreview = () => {
                 </p>
               </div>
 
-              {/* AI Hackathon PDF Guide */}
+              {/* PDF Viewer - Conditional Content */}
               <div className="flex-1 bg-gray-100/50 overflow-y-auto p-4">
-                <div className="bg-white/90 backdrop-blur-sm shadow-lg rounded-lg p-6 max-w-full mx-auto border border-gray-200">
-                  <div className="text-center mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                      AI Hackathon Guide
-                    </h1>
-                    <p className="text-sm text-gray-600">
-                      Student Submission - Building an AI-Powered Application
-                    </p>
-                  </div>
-
-                  <div className="space-y-6 text-sm text-gray-800">
-                    <section>
-                      <h2 className="text-lg font-semibold text-gray-900 mb-3">
-                        1. Project Overview
-                      </h2>
-                      <p className="leading-relaxed mb-3">
-                        Our team developed an AI-powered study assistant that
-                        helps students organize their coursework and provides
-                        personalized learning recommendations. The application
-                        integrates natural language processing to understand
-                        student queries and machine learning algorithms to adapt
-                        to individual learning patterns.
+                {essayPath ? (
+                  // Display essay PDF for Reading and Composition
+                  <div className="bg-white/90 backdrop-blur-sm shadow-lg rounded-lg p-6 max-w-full mx-auto border border-gray-200 h-full">
+                    <div className="text-center mb-6">
+                      <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                        {studentName}'s Essay
+                      </h1>
+                      <p className="text-sm text-gray-600">
+                        {assignmentName}
                       </p>
-                      <div
-                        className="p-3 rounded border-l-4"
-                        style={{
-                          backgroundColor: "#0077fe",
-                          opacity: 0.1,
-                          borderColor: "#0077fe",
-                        }}
-                      >
-                        <p className="font-medium" style={{ color: "#0077fe" }}>
-                          Tech Stack:
+                    </div>
+                    
+                    <div className="flex-1 h-full">
+                      <iframe
+                        src={essayPath}
+                        className="w-full h-full min-h-[600px] border border-gray-200 rounded"
+                        title={`${studentName}'s Essay - ${assignmentName}`}
+                      />
+                    </div>
+                    
+                    <div className="mt-4 p-4 bg-gray-50 rounded text-xs text-gray-600 text-center">
+                      <strong>Essay PDF</strong>
+                      <br />
+                      This is the student's submitted essay for grading.
+                    </div>
+                  </div>
+                ) : (
+                  // Display original AI Hackathon content for other assignments
+                  <div className="bg-white/90 backdrop-blur-sm shadow-lg rounded-lg p-6 max-w-full mx-auto border border-gray-200">
+                    <div className="text-center mb-6">
+                      <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                        AI Hackathon Guide
+                      </h1>
+                      <p className="text-sm text-gray-600">
+                        Student Submission - Building an AI-Powered Application
+                      </p>
+                    </div>
+
+                    <div className="space-y-6 text-sm text-gray-800">
+                      <section>
+                        <h2 className="text-lg font-semibold text-gray-900 mb-3">
+                          1. Project Overview
+                        </h2>
+                        <p className="leading-relaxed mb-3">
+                          Our team developed an AI-powered study assistant that
+                          helps students organize their coursework and provides
+                          personalized learning recommendations. The application
+                          integrates natural language processing to understand
+                          student queries and machine learning algorithms to adapt
+                          to individual learning patterns.
                         </p>
-                        <p style={{ color: "#0077fe" }}>
-                          React.js, Python, OpenAI API, TensorFlow, MongoDB
-                        </p>
-                      </div>
-                    </section>
-
-                    <section>
-                      <h2 className="text-lg font-semibold text-gray-900 mb-3">
-                        2. Implementation Strategy
-                      </h2>
-                      <div className="space-y-3">
-                        <div>
-                          <h3 className="font-medium text-gray-800">
-                            Frontend Development
-                          </h3>
-                          <p className="text-gray-700">
-                            Built a responsive user interface using React.js
-                            with Material-UI components. Implemented real-time
-                            chat functionality for student-AI interactions.
-                          </p>
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-gray-800">
-                            Backend Architecture
-                          </h3>
-                          <p className="text-gray-700">
-                            Developed RESTful APIs using Python Flask.
-                            Integrated OpenAI's GPT-4 for natural language
-                            understanding and response generation.
-                          </p>
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-gray-800">
-                            Machine Learning Pipeline
-                          </h3>
-                          <p className="text-gray-700">
-                            Implemented a recommendation system using
-                            collaborative filtering and content-based algorithms
-                            to suggest relevant study materials.
-                          </p>
-                        </div>
-                      </div>
-                    </section>
-
-                    <section>
-                      <h2 className="text-lg font-semibold text-gray-900 mb-3">
-                        3. Key Features
-                      </h2>
-                      <ul className="list-disc list-inside space-y-2 text-gray-700">
-                        <li>
-                          Intelligent chatbot for answering academic questions
-                        </li>
-                        <li>Personalized study schedule generation</li>
-                        <li>Progress tracking and analytics dashboard</li>
-                        <li>Collaborative study group formation</li>
-                        <li>Resource recommendation engine</li>
-                      </ul>
-                    </section>
-
-                    <section>
-                      <h2 className="text-lg font-semibold text-gray-900 mb-3">
-                        4. Challenges & Solutions
-                      </h2>
-                      <div
-                        className="p-4 rounded"
-                        style={{ backgroundColor: "#FDB515", opacity: 0.1 }}
-                      >
-                        <p
-                          className="font-medium mb-2"
-                          style={{ color: "#FDB515" }}
+                        <div
+                          className="p-3 rounded border-l-4"
+                          style={{
+                            backgroundColor: "#0077fe",
+                            opacity: 0.1,
+                            borderColor: "#0077fe",
+                          }}
                         >
-                          Challenge: API Rate Limiting
-                        </p>
-                        <p className="text-sm" style={{ color: "#FDB515" }}>
-                          Solution: Implemented caching mechanisms and request
-                          queuing to optimize API usage.
-                        </p>
-                      </div>
-                      <div
-                        className="p-4 rounded mt-3"
-                        style={{ backgroundColor: "#0077fe", opacity: 0.1 }}
-                      >
-                        <p
-                          className="font-medium mb-2"
-                          style={{ color: "#0077fe" }}
-                        >
-                          Challenge: Data Privacy
-                        </p>
-                        <p className="text-sm" style={{ color: "#0077fe" }}>
-                          Solution: Implemented end-to-end encryption and
-                          GDPR-compliant data handling.
-                        </p>
-                      </div>
-                    </section>
-
-                    <section>
-                      <h2 className="text-lg font-semibold text-gray-900 mb-3">
-                        5. Results & Impact
-                      </h2>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center p-3 bg-gray-50 rounded">
-                          <p
-                            className="text-2xl font-bold"
-                            style={{ color: "#0077fe" }}
-                          >
-                            85%
+                          <p className="font-medium" style={{ color: "#0077fe" }}>
+                            Tech Stack:
                           </p>
-                          <p className="text-xs text-gray-600">
-                            User Satisfaction
+                          <p style={{ color: "#0077fe" }}>
+                            React.js, Python, OpenAI API, TensorFlow, MongoDB
                           </p>
                         </div>
-                        <div className="text-center p-3 bg-gray-50 rounded">
+                      </section>
+
+                      <section>
+                        <h2 className="text-lg font-semibold text-gray-900 mb-3">
+                          2. Implementation Strategy
+                        </h2>
+                        <div className="space-y-3">
+                          <div>
+                            <h3 className="font-medium text-gray-800">
+                              Frontend Development
+                            </h3>
+                            <p className="text-gray-700">
+                              Built a responsive user interface using React.js
+                              with Material-UI components. Implemented real-time
+                              chat functionality for student-AI interactions.
+                            </p>
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-gray-800">
+                              Backend Architecture
+                            </h3>
+                            <p className="text-gray-700">
+                              Developed RESTful APIs using Python Flask.
+                              Integrated OpenAI's GPT-4 for natural language
+                              understanding and response generation.
+                            </p>
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-gray-800">
+                              Machine Learning Pipeline
+                            </h3>
+                            <p className="text-gray-700">
+                              Implemented a recommendation system using
+                              collaborative filtering and content-based algorithms
+                              to suggest relevant study materials.
+                            </p>
+                          </div>
+                        </div>
+                      </section>
+
+                      <section>
+                        <h2 className="text-lg font-semibold text-gray-900 mb-3">
+                          3. Key Features
+                        </h2>
+                        <ul className="list-disc list-inside space-y-2 text-gray-700">
+                          <li>
+                            Intelligent chatbot for answering academic questions
+                          </li>
+                          <li>Personalized study schedule generation</li>
+                          <li>Progress tracking and analytics dashboard</li>
+                          <li>Collaborative study group formation</li>
+                          <li>Resource recommendation engine</li>
+                        </ul>
+                      </section>
+
+                      <section>
+                        <h2 className="text-lg font-semibold text-gray-900 mb-3">
+                          4. Challenges & Solutions
+                        </h2>
+                        <div
+                          className="p-4 rounded"
+                          style={{ backgroundColor: "#FDB515", opacity: 0.1 }}
+                        >
                           <p
-                            className="text-2xl font-bold"
+                            className="font-medium mb-2"
                             style={{ color: "#FDB515" }}
                           >
-                            200+
+                            Challenge: API Rate Limiting
                           </p>
-                          <p className="text-xs text-gray-600">Beta Users</p>
+                          <p className="text-sm" style={{ color: "#FDB515" }}>
+                            Solution: Implemented caching mechanisms and request
+                            queuing to optimize API usage.
+                          </p>
                         </div>
-                      </div>
-                    </section>
+                        <div
+                          className="p-4 rounded mt-3"
+                          style={{ backgroundColor: "#0077fe", opacity: 0.1 }}
+                        >
+                          <p
+                            className="font-medium mb-2"
+                            style={{ color: "#0077fe" }}
+                          >
+                            Challenge: Data Privacy
+                          </p>
+                          <p className="text-sm" style={{ color: "#0077fe" }}>
+                            Solution: Implemented end-to-end encryption and
+                            GDPR-compliant data handling.
+                          </p>
+                        </div>
+                      </section>
 
-                    <section>
-                      <h2 className="text-lg font-semibold text-gray-900 mb-3">
-                        6. Future Roadmap
-                      </h2>
-                      <p className="text-gray-700">
-                        Plans include expanding to multiple educational domains,
-                        implementing voice interaction capabilities, and
-                        developing mobile applications for iOS and Android.
-                      </p>
-                    </section>
-                  </div>
+                      <section>
+                        <h2 className="text-lg font-semibold text-gray-900 mb-3">
+                          5. Results & Impact
+                        </h2>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="text-center p-3 bg-gray-50 rounded">
+                            <p
+                              className="text-2xl font-bold"
+                              style={{ color: "#0077fe" }}
+                            >
+                              85%
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              User Satisfaction
+                            </p>
+                          </div>
+                          <div className="text-center p-3 bg-gray-50 rounded">
+                            <p
+                              className="text-2xl font-bold"
+                              style={{ color: "#FDB515" }}
+                            >
+                              200+
+                            </p>
+                            <p className="text-xs text-gray-600">Beta Users</p>
+                          </div>
+                        </div>
+                      </section>
 
-                  <div className="mt-6 p-4 bg-gray-50 rounded text-xs text-gray-600 text-center">
-                    <strong>Student Submission PDF</strong>
-                    <br />
-                    This represents a comprehensive hackathon project
-                    documentation submitted by the student.
+                      <section>
+                        <h2 className="text-lg font-semibold text-gray-900 mb-3">
+                          6. Future Roadmap
+                        </h2>
+                        <p className="text-gray-700">
+                          Plans include expanding to multiple educational domains,
+                          implementing voice interaction capabilities, and
+                          developing mobile applications for iOS and Android.
+                        </p>
+                      </section>
+                    </div>
+
+                    <div className="mt-6 p-4 bg-gray-50 rounded text-xs text-gray-600 text-center">
+                      <strong>Student Submission PDF</strong>
+                      <br />
+                      This represents a comprehensive hackathon project
+                      documentation submitted by the student.
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
@@ -491,13 +448,65 @@ const GradingPreview = () => {
                       style={{ backgroundColor: "#0077fe" }}
                     ></div>
                     AI-Generated Feedback
+                    {savedAIFeedback && (
+                      <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Auto-Graded
+                      </span>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="h-full overflow-y-auto">
                   <div className="prose prose-sm max-w-none">
-                    <div className="whitespace-pre-line text-sm text-gray-700">
-                      {aiFeedback}
-                    </div>
+                    {aiFeedback ? (
+                      <div className="text-sm text-gray-700">
+                        {aiFeedback.split('\n').map((line, index) => {
+                          const trimmedLine = line.trim();
+                          
+                          // Skip lines that start with + (these are formatting artifacts)
+                          if (trimmedLine.startsWith('+')) {
+                            return null;
+                          }
+                          
+                          // Handle bold headers (text between **)
+                          if (trimmedLine.includes('**')) {
+                            const formattedLine = trimmedLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                            return (
+                              <div 
+                                key={index} 
+                                className="font-bold text-gray-900 mt-4 mb-2"
+                                dangerouslySetInnerHTML={{ __html: formattedLine }}
+                              />
+                            );
+                          }
+                          // Handle bullet points
+                          else if (trimmedLine.startsWith('-')) {
+                            return (
+                              <div key={index} className="flex items-start ml-4 mb-1">
+                                <span className="text-gray-900 font-bold mr-2">•</span>
+                                <span className="text-gray-700">{trimmedLine.substring(1).trim()}</span>
+                              </div>
+                            );
+                          }
+                          // Handle empty lines
+                          else if (trimmedLine === '') {
+                            return <div key={index} className="h-2" />;
+                          }
+                          // Handle regular text
+                          else {
+                            return (
+                              <div key={index} className="text-gray-700 mb-1">
+                                {trimmedLine}
+                              </div>
+                            );
+                          }
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <p className="text-sm">No AI feedback available</p>
+                        <p className="text-xs mt-1">Run auto-grading to generate feedback</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -607,6 +616,58 @@ const GradingPreview = () => {
                         </div>
                       </div>
                     )}
+                  </div>
+
+                  {/* Text Feedback Section */}
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">
+                      Manual Feedback Input
+                    </h3>
+                    <Textarea
+                      placeholder="Type your feedback here..."
+                      value={textFeedback}
+                      onChange={(e) => setTextFeedback(e.target.value)}
+                      className="min-h-[100px] resize-none"
+                    />
+                    <div className="flex gap-2 mt-3">
+                      <Button
+                        onClick={() => {
+                          if (textFeedback.trim()) {
+                            setFeedback(textFeedback);
+                            setHasRecording(true);
+                            toast({
+                              title: "Text Feedback Set",
+                              description: "Your text feedback has been set as the current feedback.",
+                            });
+                          } else {
+                            toast({
+                              title: "No Feedback",
+                              description: "Please enter some feedback text first.",
+                            });
+                          }
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                      >
+                        <Send className="h-4 w-4 mr-2" />
+                        Set as Feedback
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setTextFeedback("");
+                          toast({
+                            title: "Text Cleared",
+                            description: "Text feedback has been cleared.",
+                          });
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="px-3"
+                      >
+                        Clear
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Bottom Action Buttons */}

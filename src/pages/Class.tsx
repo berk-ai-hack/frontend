@@ -35,68 +35,202 @@ const Class = () => {
   const { className = "Linear Algebra", classCode = "MATH54" } =
     location.state || {};
 
-  const assignments = [
-    {
-      id: 1,
-      name: "Problem Set 1: Vector Operations and Linear Combinations",
-      dueDate: "2024-05-06",
-      totalStudents: 45,
-      submitted: 45,
-      graded: 45,
-      type: "Problem Set",
-      points: 100,
-      aiStatus: "completed",
-      gradingStatus: "approved",
-    },
-    {
-      id: 2,
-      name: "Quiz 1: Matrix Operations and Gaussian Elimination",
-      dueDate: "2024-05-13",
-      totalStudents: 45,
-      submitted: 45,
-      graded: 45,
-      type: "Quiz",
-      points: 50,
-      aiStatus: "completed",
-      gradingStatus: "approved",
-    },
-    {
-      id: 3,
-      name: "Problem Set 2: Linear Transformations and Determinants",
-      dueDate: "2024-05-20",
-      totalStudents: 45,
-      submitted: 45,
-      graded: 45,
-      type: "Problem Set",
-      points: 150,
-      aiStatus: "completed",
-      gradingStatus: "approved",
-    },
-    {
-      id: 4,
-      name: "Midterm Exam",
-      dueDate: "2024-05-27",
-      totalStudents: 45,
-      submitted: 45,
-      graded: 45,
-      type: "Exam",
-      points: 200,
-      aiStatus: "completed",
-      gradingStatus: "approved",
-    },
-    {
-      id: 5,
-      name: "Problem Set 3: Eigenvalues and Eigenvectors",
-      dueDate: "2024-06-03",
-      totalStudents: 45,
-      submitted: 45,
-      graded: 0,
-      type: "Problem Set",
-      points: 175,
-      aiStatus: "in_progress",
-      gradingStatus: "autograded",
-    },
-  ];
+  // Define assignments based on class type
+  const getAssignments = () => {
+    if (className === "Reading and Composition") {
+      return [
+        {
+          id: 1,
+          name: "Essay 1: Critical Analysis of 'The Great Gatsby'",
+          dueDate: "2024-05-06",
+          totalStudents: 5,
+          submitted: 5,
+          graded: 5,
+          type: "Essay",
+          points: 100,
+          aiStatus: "completed",
+          gradingStatus: "approved",
+        },
+        {
+          id: 2,
+          name: "Reading Response: 'To Kill a Mockingbird' Chapters 1-10",
+          dueDate: "2024-05-13",
+          totalStudents: 5,
+          submitted: 5,
+          graded: 5,
+          type: "Essay",
+          points: 50,
+          aiStatus: "completed",
+          gradingStatus: "approved",
+        },
+        {
+          id: 3,
+          name: "Research Paper: Literary Analysis of Modern American Fiction",
+          dueDate: "2024-05-20",
+          totalStudents: 5,
+          submitted: 5,
+          graded: 5,
+          type: "Research Paper",
+          points: 150,
+          aiStatus: "completed",
+          gradingStatus: "approved",
+        },
+        {
+          id: 4,
+          name: "Midterm Exam: Literary Theory and Analysis",
+          dueDate: "2024-05-27",
+          totalStudents: 5,
+          submitted: 5,
+          graded: 5,
+          type: "Exam",
+          points: 200,
+          aiStatus: "completed",
+          gradingStatus: "approved",
+        },
+        {
+          id: 5,
+          name: "Final Essay: Comparative Analysis of Two Novels",
+          dueDate: "2024-06-03",
+          totalStudents: 5,
+          submitted: 5,
+          graded: 0,
+          type: "Essay",
+          points: 175,
+          aiStatus: "in_progress",
+          gradingStatus: "autograded",
+        },
+      ];
+    } else if (className === "Comparative Literature") {
+      return [
+        {
+          id: 1,
+          name: "Essay 1: Cross-Cultural Analysis of 'Don Quixote'",
+          dueDate: "2024-05-06",
+          totalStudents: 5,
+          submitted: 5,
+          graded: 5,
+          type: "Essay",
+          points: 100,
+          aiStatus: "completed",
+          gradingStatus: "approved",
+        },
+        {
+          id: 2,
+          name: "Reading Response: 'Madame Bovary' and Realism",
+          dueDate: "2024-05-13",
+          totalStudents: 5,
+          submitted: 5,
+          graded: 5,
+          type: "Essay",
+          points: 50,
+          aiStatus: "completed",
+          gradingStatus: "approved",
+        },
+        {
+          id: 3,
+          name: "Research Paper: Global Literary Movements",
+          dueDate: "2024-05-20",
+          totalStudents: 5,
+          submitted: 5,
+          graded: 5,
+          type: "Research Paper",
+          points: 150,
+          aiStatus: "completed",
+          gradingStatus: "approved",
+        },
+        {
+          id: 4,
+          name: "Midterm Exam: Comparative Literary Theory",
+          dueDate: "2024-05-27",
+          totalStudents: 5,
+          submitted: 5,
+          graded: 5,
+          type: "Exam",
+          points: 200,
+          aiStatus: "completed",
+          gradingStatus: "approved",
+        },
+        {
+          id: 5,
+          name: "Final Essay: World Literature Synthesis",
+          dueDate: "2024-06-03",
+          totalStudents: 5,
+          submitted: 5,
+          graded: 0,
+          type: "Essay",
+          points: 175,
+          aiStatus: "in_progress",
+          gradingStatus: "autograded",
+        },
+      ];
+    } else {
+      // Default math assignments for Linear Algebra
+      return [
+        {
+          id: 1,
+          name: "Problem Set 1: Vector Operations and Linear Combinations",
+          dueDate: "2024-05-06",
+          totalStudents: 5,
+          submitted: 5,
+          graded: 5,
+          type: "Problem Set",
+          points: 100,
+          aiStatus: "completed",
+          gradingStatus: "approved",
+        },
+        {
+          id: 2,
+          name: "Quiz 1: Matrix Operations and Gaussian Elimination",
+          dueDate: "2024-05-13",
+          totalStudents: 5,
+          submitted: 5,
+          graded: 5,
+          type: "Quiz",
+          points: 50,
+          aiStatus: "completed",
+          gradingStatus: "approved",
+        },
+        {
+          id: 3,
+          name: "Problem Set 2: Linear Transformations and Determinants",
+          dueDate: "2024-05-20",
+          totalStudents: 5,
+          submitted: 5,
+          graded: 5,
+          type: "Problem Set",
+          points: 150,
+          aiStatus: "completed",
+          gradingStatus: "approved",
+        },
+        {
+          id: 4,
+          name: "Midterm Exam",
+          dueDate: "2024-05-27",
+          totalStudents: 5,
+          submitted: 5,
+          graded: 5,
+          type: "Exam",
+          points: 200,
+          aiStatus: "completed",
+          gradingStatus: "approved",
+        },
+        {
+          id: 5,
+          name: "Problem Set 3: Eigenvalues and Eigenvectors",
+          dueDate: "2024-06-03",
+          totalStudents: 5,
+          submitted: 5,
+          graded: 0,
+          type: "Problem Set",
+          points: 175,
+          aiStatus: "in_progress",
+          gradingStatus: "autograded",
+        },
+      ];
+    }
+  };
+
+  const assignments = getAssignments();
 
   // Reverse order to show most recent first
   const sortedAssignments = [...assignments].reverse();
@@ -222,7 +356,7 @@ const Class = () => {
                     <p className="text-sm font-medium text-gray-600">
                       Students
                     </p>
-                    <p className="text-2xl font-bold text-gray-900">45</p>
+                    <p className="text-2xl font-bold text-gray-900">5</p>
                   </div>
                 </div>
               </CardContent>
@@ -294,18 +428,23 @@ const Class = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Homework/Problem Sets Column */}
+                  {/* Essays and Research Papers Column */}
                   <div>
                     <h3
                       className="text-lg font-semibold text-gray-900 mb-4"
                       style={{ color: "#0077fe" }}
                     >
-                      Homeworks
+                      {className === "Reading and Composition" || className === "Comparative Literature" 
+                        ? "Essays & Papers" 
+                        : "Homeworks"}
                     </h3>
                     <div className="space-y-3">
                       {sortedAssignments
                         .filter(
-                          (assignment) => assignment.type === "Problem Set"
+                          (assignment) => 
+                            className === "Reading and Composition" || className === "Comparative Literature"
+                              ? ["Essay", "Research Paper"].includes(assignment.type)
+                              : assignment.type === "Problem Set"
                         )
                         .map((assignment) => (
                           <div

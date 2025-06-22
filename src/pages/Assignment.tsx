@@ -2,6 +2,9 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, FileText, Play, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import Navigation from "@/components/Navigation";
 import { useState, useEffect } from "react";
 
@@ -10,6 +13,9 @@ const Assignment = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showAutoGradeDialog, setShowAutoGradeDialog] = useState(false);
+  const [gradingCriteria, setGradingCriteria] = useState("");
+  const [isAutoGrading, setIsAutoGrading] = useState(false);
 
   const {
     assignmentName = "Problem Set 1: Vector Operations and Linear Combinations",
@@ -17,6 +23,18 @@ const Assignment = () => {
     classCode = "MATH54",
     assignmentId = 1,
   } = location.state || {};
+
+  const [autoGradingStates, setAutoGradingStates] = useState<{ [key: number]: 'idle' | 'processing' | 'completed' | 'error' }>(() => {
+    // Load saved auto-grading states from localStorage
+    const saved = localStorage.getItem(`autoGradingStates_${assignmentId}`);
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  const [autoGradingFeedback, setAutoGradingFeedback] = useState<{ [key: number]: string }>(() => {
+    // Load saved auto-grading feedback from localStorage
+    const saved = localStorage.getItem(`autoGradingFeedback_${assignmentId}`);
+    return saved ? JSON.parse(saved) : {};
+  });
 
   const humanizeDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -29,22 +47,9 @@ const Assignment = () => {
   // First 4 assignments (Problem Set 1, Quiz 1, Problem Set 2, Midterm) are fully approved
   // Last assignment (Problem Set 3) is only autograded but not teacher approved
   const isFullyGraded = assignmentId <= 4;
-  const isProcessingAssignment = assignmentId === 5;
 
-  // Simulate processing completion after 3 seconds for assignment 5
-  useEffect(() => {
-    if (isProcessingAssignment) {
-      setIsProcessing(true);
-      const timer = setTimeout(() => {
-        setIsProcessing(false);
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isProcessingAssignment]);
-
-  // Generate 50 dummy students with realistic submission dates
-  const students = Array.from({ length: 50 }, (_, index) => ({
+  // Generate 5 dummy students with realistic submission dates
+  const students = Array.from({ length: 5 }, (_, index) => ({
     id: index + 1,
     name: [
       "Emma Johnson",
@@ -52,51 +57,6 @@ const Assignment = () => {
       "Olivia Brown",
       "Noah Davis",
       "Ava Wilson",
-      "Isabella Garcia",
-      "Sophia Martinez",
-      "Charlotte Anderson",
-      "Amelia Taylor",
-      "Mia Thomas",
-      "Harper Jackson",
-      "Evelyn White",
-      "Abigail Harris",
-      "Emily Martin",
-      "Elizabeth Thompson",
-      "Sofia Garcia",
-      "Avery Rodriguez",
-      "Ella Lewis",
-      "Scarlett Lee",
-      "Victoria Walker",
-      "Madison Hall",
-      "Luna Allen",
-      "Grace Young",
-      "Chloe Hernandez",
-      "Penelope King",
-      "Layla Wright",
-      "Riley Lopez",
-      "Zoey Hill",
-      "Nora Scott",
-      "Lily Green",
-      "Eleanor Adams",
-      "Hannah Baker",
-      "Lillian Gonzalez",
-      "Addison Nelson",
-      "Aubrey Carter",
-      "Ellie Mitchell",
-      "Stella Perez",
-      "Natalie Roberts",
-      "Zoe Turner",
-      "Leah Phillips",
-      "Hazel Campbell",
-      "Violet Parker",
-      "Aurora Evans",
-      "Savannah Edwards",
-      "Audrey Collins",
-      "Brooklyn Stewart",
-      "Bella Sanchez",
-      "Claire Morris",
-      "Skylar Rogers",
-      "Lucy Reed",
     ][index],
     submissionUrl: `https://canvas.example.com/submission_${index + 1}.pdf`,
     submittedAt: `2024-05-${String(
@@ -111,6 +71,151 @@ const Assignment = () => {
   const gradedCount = students.filter(
     (student) => student.status === "graded"
   ).length;
+
+  // Helper function to save auto-grading states to localStorage
+  const saveAutoGradingStates = (states: { [key: number]: 'idle' | 'processing' | 'completed' | 'error' }) => {
+    localStorage.setItem(`autoGradingStates_${assignmentId}`, JSON.stringify(states));
+  };
+
+  // Helper function to clear saved auto-grading states
+  const clearAutoGradingStates = () => {
+    localStorage.removeItem(`autoGradingStates_${assignmentId}`);
+  };
+
+  // Helper function to save auto-grading feedback to localStorage
+  const saveAutoGradingFeedback = (feedback: { [key: number]: string }) => {
+    localStorage.setItem(`autoGradingFeedback_${assignmentId}`, JSON.stringify(feedback));
+  };
+
+  // Helper function to clear saved auto-grading feedback
+  const clearAutoGradingFeedback = () => {
+    localStorage.removeItem(`autoGradingFeedback_${assignmentId}`);
+  };
+
+  // Wrapper function to update auto-grading states and save them
+  const updateAutoGradingStates = (updater: (prev: { [key: number]: 'idle' | 'processing' | 'completed' | 'error' }) => { [key: number]: 'idle' | 'processing' | 'completed' | 'error' }) => {
+    setAutoGradingStates(prev => {
+      const newStates = updater(prev);
+      saveAutoGradingStates(newStates);
+      return newStates;
+    });
+  };
+
+  // Wrapper function to update auto-grading feedback and save it
+  const updateAutoGradingFeedback = (updater: (prev: { [key: number]: string }) => { [key: number]: string }) => {
+    setAutoGradingFeedback(prev => {
+      const newFeedback = updater(prev);
+      saveAutoGradingFeedback(newFeedback);
+      return newFeedback;
+    });
+  };
+
+  // Auto-grading functions
+  const handleAutoGradeClick = () => {
+    setShowAutoGradeDialog(true);
+  };
+
+  const handleResetAutoGradingStates = () => {
+    if (window.confirm('Are you sure you want to clear all auto-grading results? This action cannot be undone.')) {
+      clearAutoGradingStates();
+      clearAutoGradingFeedback();
+      setAutoGradingStates({});
+      setAutoGradingFeedback({});
+    }
+  };
+
+  const handleStartAutoGrading = async () => {
+    if (!gradingCriteria.trim()) {
+      alert("Please enter grading criteria");
+      return;
+    }
+
+    setShowAutoGradeDialog(false);
+    setIsAutoGrading(true);
+    
+    // Clear any previous auto-grading states for this assignment
+    clearAutoGradingStates();
+    clearAutoGradingFeedback();
+    
+    // Initialize all students to processing state
+    const initialStates: { [key: number]: 'idle' | 'processing' | 'completed' | 'error' } = {};
+    students.forEach((_, index) => {
+      initialStates[index] = 'processing';
+    });
+    updateAutoGradingStates(prev => initialStates);
+    setAutoGradingFeedback({});
+
+    // Process each student sequentially
+    for (let i = 0; i < students.length; i++) {
+      try {
+        const result = await autoGradeStudent(i, students[i]);
+        if (result.success && result.feedback) {
+          // Save the AI feedback
+          updateAutoGradingFeedback(prev => ({ ...prev, [i]: result.feedback }));
+        }
+        updateAutoGradingStates(prev => ({ ...prev, [i]: 'completed' }));
+      } catch (error) {
+        console.error(`Error auto-grading student ${i + 1}:`, error);
+        updateAutoGradingStates(prev => ({ ...prev, [i]: 'error' }));
+      }
+    }
+
+    setIsAutoGrading(false);
+  };
+
+  const autoGradeStudent = async (studentIndex: number, student: any) => {
+    const maxRetries = 5;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Auto-grading student ${studentIndex + 1}: ${student.name} (Attempt ${attempt}/${maxRetries})`);
+        console.log('Grading criteria:', gradingCriteria);
+        console.log('PDF file:', `/essays/essay${studentIndex + 1}.pdf`);
+
+        // Simulate API call to prompt_initial
+        // In a real implementation, this would call your actual API
+        const result = await new Promise<{ success: boolean; feedback?: string; error?: string }>((resolve, reject) => {
+          setTimeout(() => {
+            // Simulate API response with higher failure rate for testing retry logic
+            if (Math.random() > 0.3) { // 70% success rate
+              // In real implementation, this would be the actual API response
+              // For now, simulate a successful response without feedback
+              resolve({ success: true });
+            } else {
+              resolve({ success: false, error: `API call failed on attempt ${attempt}` });
+            }
+          }, 2000 + Math.random() * 3000); // Random delay between 2-5 seconds
+        });
+
+        if (result.success && result.feedback) {
+          // If we reach here, the API call was successful
+          console.log(`Successfully auto-graded student ${studentIndex + 1} on attempt ${attempt}`);
+          return { success: true, feedback: result.feedback };
+        } else {
+          // For now, just return success without feedback
+          // In real implementation, this would return the actual API feedback
+          console.log(`Successfully auto-graded student ${studentIndex + 1} on attempt ${attempt}`);
+          return { success: true };
+        }
+
+      } catch (error) {
+        lastError = error as Error;
+        console.error(`Attempt ${attempt} failed for student ${studentIndex + 1}:`, error);
+        
+        // If this is not the last attempt, wait a bit before retrying
+        if (attempt < maxRetries) {
+          const retryDelay = 1000 + Math.random() * 2000; // 1-3 second delay between retries
+          console.log(`Retrying in ${Math.round(retryDelay)}ms...`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+        }
+      }
+    }
+
+    // If we reach here, all attempts failed
+    console.error(`All ${maxRetries} attempts failed for student ${studentIndex + 1}`);
+    throw lastError || new Error('Auto-grading failed after all retry attempts');
+  };
 
   return (
     <div className="min-h-screen bg-white text-gray-900 relative">
@@ -159,6 +264,24 @@ const Assignment = () => {
                   {gradedCount}/{students.length} graded
                 </span>
                 <Button
+                  onClick={handleAutoGradeClick}
+                  disabled={gradedCount === students.length || isAutoGrading}
+                  className={`px-4 py-2 ${
+                    gradedCount === students.length || isAutoGrading
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-green-600 text-white hover:bg-green-700"
+                  }`}
+                >
+                  {isAutoGrading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Auto Grading...
+                    </>
+                  ) : (
+                    "Auto Grade"
+                  )}
+                </Button>
+                <Button
                   onClick={() =>
                     navigate("/grading-preview", {
                       state: {
@@ -169,6 +292,7 @@ const Assignment = () => {
                         currentStudent: gradedCount + 1,
                         totalStudents: students.length,
                         assignmentId,
+                        essayNumber: gradedCount + 1,
                       },
                     })
                   }
@@ -263,9 +387,27 @@ const Assignment = () => {
           {/* Students Table */}
           <Card className="border border-gray-200 bg-white/90 backdrop-blur-sm shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-xl font-bold text-gray-900">
-                Student Submissions
-              </CardTitle>
+              <div className="flex items-center space-x-3">
+                <CardTitle className="text-xl font-bold text-gray-900">
+                  Student Submissions
+                </CardTitle>
+                {Object.keys(autoGradingStates).length > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Auto-Grading Results Saved
+                    </span>
+                    <Button
+                      onClick={handleResetAutoGradingStates}
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      Clear Results
+                    </Button>
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -313,6 +455,7 @@ const Assignment = () => {
                                   currentStudent: index + 1,
                                   totalStudents: students.length,
                                   assignmentId,
+                                  essayNumber: index + 1,
                                 },
                               })
                             }
@@ -332,6 +475,20 @@ const Assignment = () => {
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                               <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                               Processing
+                            </span>
+                          ) : isAutoGrading && autoGradingStates[index] === 'processing' ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              Auto Grading
+                            </span>
+                          ) : autoGradingStates[index] === 'completed' ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Auto Graded
+                            </span>
+                          ) : autoGradingStates[index] === 'error' ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              Auto Grade Failed
                             </span>
                           ) : (
                             <span
@@ -365,6 +522,55 @@ const Assignment = () => {
           </Card>
         </div>
       </div>
+
+      {/* Auto Grade Dialog */}
+      <Dialog open={showAutoGradeDialog} onOpenChange={setShowAutoGradeDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Auto Grade Assignment</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="grading-criteria" className="text-sm font-medium">
+                Grading Criteria
+              </Label>
+              <Textarea
+                id="grading-criteria"
+                placeholder="Enter the grading criteria that will be used to evaluate each student's submission..."
+                value={gradingCriteria}
+                onChange={(e) => setGradingCriteria(e.target.value)}
+                className="mt-2 min-h-[120px]"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                This criteria will be sent to the AI grading system along with each student's PDF submission.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowAutoGradeDialog(false)}
+              disabled={isAutoGrading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleStartAutoGrading}
+              disabled={!gradingCriteria.trim() || isAutoGrading}
+              className="bg-green-600 text-white hover:bg-green-700"
+            >
+              {isAutoGrading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Starting...
+                </>
+              ) : (
+                "Start Auto Grading"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
