@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { GraduationCap, Download, Video, ArrowRight, CheckCircle } from "lucide-react";
+import {
+  GraduationCap,
+  Download,
+  Video,
+  ArrowRight,
+  CheckCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
@@ -10,14 +16,14 @@ const Sync = () => {
   const [synced, setSynced] = useState({ canvas: false, bcourses: false });
   const navigate = useNavigate();
 
-  const handleSync = (type: 'canvas' | 'bcourses') => {
-    setSyncing(prev => ({ ...prev, [type]: true }));
-    
+  const handleSync = (type: "canvas" | "bcourses") => {
+    setSyncing((prev) => ({ ...prev, [type]: true }));
+
     setTimeout(() => {
-      setSyncing(prev => ({ ...prev, [type]: false }));
-      setSynced(prev => ({ ...prev, [type]: true }));
+      setSyncing((prev) => ({ ...prev, [type]: false }));
+      setSynced((prev) => ({ ...prev, [type]: true }));
       toast({
-        title: `${type === 'canvas' ? 'Canvas' : 'bCourses'} Sync Complete`,
+        title: `${type === "canvas" ? "Canvas" : "bCourses"} Sync Complete`,
         description: "Your data has been successfully imported.",
       });
     }, 3000);
@@ -33,7 +39,9 @@ const Sync = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <GraduationCap className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">Teacher's Pet</span>
+              <span className="ml-2 text-xl font-bold text-gray-900">
+                Teacher's Pet
+              </span>
             </div>
           </div>
         </div>
@@ -45,7 +53,8 @@ const Sync = () => {
             Sync Your Course Data
           </h1>
           <p className="text-lg text-gray-600">
-            Import your classes and assignments from your learning management system
+            Import your classes and assignments from your learning management
+            system
           </p>
         </div>
 
@@ -64,7 +73,7 @@ const Sync = () => {
               <p className="text-gray-600 mb-6">
                 Import classes, assignments, and student rosters from Canvas LMS
               </p>
-              
+
               {synced.canvas ? (
                 <div className="flex items-center justify-center text-green-600 mb-4">
                   <CheckCircle className="h-5 w-5 mr-2" />
@@ -72,7 +81,7 @@ const Sync = () => {
                 </div>
               ) : (
                 <Button
-                  onClick={() => handleSync('canvas')}
+                  onClick={() => handleSync("canvas")}
                   disabled={syncing.canvas}
                   className="w-full bg-orange-600 hover:bg-orange-700 text-white"
                 >
@@ -101,9 +110,10 @@ const Sync = () => {
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-gray-600 mb-6">
-                Import classes, assignments, and student rosters from Brightspace
+                Import classes, assignments, and student rosters from
+                Brightspace
               </p>
-              
+
               {synced.bcourses ? (
                 <div className="flex items-center justify-center text-green-600 mb-4">
                   <CheckCircle className="h-5 w-5 mr-2" />
@@ -111,7 +121,7 @@ const Sync = () => {
                 </div>
               ) : (
                 <Button
-                  onClick={() => handleSync('bcourses')}
+                  onClick={() => handleSync("bcourses")}
                   disabled={syncing.bcourses}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 >
@@ -132,18 +142,18 @@ const Sync = () => {
         {/* Continue Button */}
         <div className="text-center">
           <Button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate("/dashboard")}
             disabled={!canContinue}
             className={`px-8 py-3 text-lg font-medium ${
-              canContinue 
-                ? 'bg-green-600 hover:bg-green-700 text-white' 
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              canContinue
+                ? "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >
             Continue to Dashboard
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
-          
+
           {!canContinue && (
             <p className="text-sm text-gray-500 mt-2">
               Please sync at least one data source to continue
