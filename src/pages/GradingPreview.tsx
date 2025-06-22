@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { GraduationCap, ArrowLeft, Mic, MicOff, Check, RotateCcw, Send, Volume2 } from "lucide-react";
+import { GraduationCap, ArrowLeft, Mic, Check, RotateCcw, Send, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
@@ -112,7 +112,7 @@ const GradingPreview = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <GraduationCap className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">EduGrade Pro</span>
+              <span className="ml-2 text-xl font-bold text-gray-900">Teacher's Pet</span>
             </div>
             <div className="flex items-center space-x-4">
               <Button
@@ -219,13 +219,13 @@ const GradingPreview = () => {
                     <div className="text-center">
                       <Button
                         onClick={isRecording ? handleStopRecording : handleStartRecording}
-                        className={`w-20 h-20 rounded-full ${
+                        className={`w-16 h-16 rounded-lg ${
                           isRecording 
                             ? 'bg-red-600 hover:bg-red-700 animate-pulse' 
                             : 'bg-blue-600 hover:bg-blue-700'
                         }`}
                       >
-                        {isRecording ? <MicOff className="h-8 w-8" /> : <Mic className="h-8 w-8" />}
+                        <Mic className="h-8 w-8" />
                       </Button>
                       <p className="mt-2 text-sm text-gray-600">
                         {isRecording ? "Recording... Click to stop" : "Click to start recording"}
@@ -242,22 +242,31 @@ const GradingPreview = () => {
                         <p className="text-sm text-gray-700 italic">"{feedback}"</p>
                       </div>
 
-                      {/* Action Buttons */}
-                      <div className="grid grid-cols-2 gap-3">
+                      {/* Action Buttons - New Layout */}
+                      <div className="flex gap-3 justify-center">
                         <Button
-                          onClick={handleSubmitFeedback}
-                          className="bg-green-600 hover:bg-green-700 text-white"
+                          onClick={isRecording ? handleStopRecording : handleStartRecording}
+                          className={`w-12 h-12 rounded-lg ${
+                            isRecording 
+                              ? 'bg-red-600 hover:bg-red-700 animate-pulse' 
+                              : 'bg-blue-600 hover:bg-blue-700'
+                          }`}
                         >
-                          <Send className="h-4 w-4 mr-2" />
-                          Submit
+                          <Mic className="h-6 w-6" />
                         </Button>
+                        
+                        <Button
+                          onClick={handleAcceptFeedback}
+                          className="w-12 h-12 rounded-lg bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          <Check className="h-6 w-6" />
+                        </Button>
+                        
                         <Button
                           onClick={handleRestart}
-                          variant="outline"
-                          className="border-gray-300"
+                          className="w-12 h-12 rounded-lg bg-gray-500 hover:bg-gray-600 text-white"
                         >
-                          <RotateCcw className="h-4 w-4 mr-2" />
-                          Re-record
+                          <RotateCcw className="h-6 w-6" />
                         </Button>
                       </div>
                     </div>

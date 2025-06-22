@@ -4,23 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { GraduationCap, Users, FileText, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-
-  const handleSSOLogin = async () => {
-    setIsLoading(true);
-    // Simulate SSO authentication
-    setTimeout(() => {
-      toast({
-        title: "Login Successful",
-        description: "Welcome back! Redirecting to sync page...",
-      });
-      navigate("/sync");
-    }, 2000);
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -30,7 +16,7 @@ const Index = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <GraduationCap className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">EduGrade Pro</span>
+              <span className="ml-2 text-xl font-bold text-gray-900">Teacher's Pet</span>
             </div>
           </div>
         </div>
@@ -78,29 +64,17 @@ const Index = () => {
         <Card className="max-w-md mx-auto shadow-xl border-0">
           <CardContent className="p-8">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Educator Login</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Get Started</h2>
               <p className="text-gray-600 mb-8">
-                Sign in with your institutional email to get started
+                Ready to transform your grading experience?
               </p>
               
               <Button 
-                onClick={handleSSOLogin}
-                disabled={isLoading}
+                onClick={() => navigate('/login')}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-medium"
               >
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    Authenticating...
-                  </div>
-                ) : (
-                  "Login with SSO"
-                )}
+                Go to Login
               </Button>
-              
-              <p className="text-sm text-gray-500 mt-4">
-                Supports institutional domains (.edu, .ac.uk, etc.)
-              </p>
             </div>
           </CardContent>
         </Card>

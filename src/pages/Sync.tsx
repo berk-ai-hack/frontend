@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GraduationCap, Download, Video, ArrowRight, CheckCircle } from "lucide-react";
@@ -34,7 +33,7 @@ const Sync = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <GraduationCap className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">EduGrade Pro</span>
+              <span className="ml-2 text-xl font-bold text-gray-900">Teacher's Pet</span>
             </div>
           </div>
         </div>
