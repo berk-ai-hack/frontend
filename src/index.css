@@ -106,25 +106,31 @@
 @layer components {
   .platform {
     @apply rounded-xl bg-white/70 backdrop-blur-sm transition-all duration-300;
-    transform-style: preserve-3d;
-    transform: rotateX(45deg) rotateZ(-35deg) scale(0.8);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     z-index: 10;
+    transform-origin: center;
   }
   .platform:hover {
-    transform: rotateX(45deg) rotateZ(-35deg) scale(0.85) translateY(-20px);
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
+  }
+
+  #platform-tp {
+    transition: all duration-300;
+  }
+  #platform-tp:hover {
+    transform: translate(-50%, -50%) translateY(-10px) scale(1.02) !important;
     box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
   }
 
   .platform-content {
     @apply p-6;
-    transform: translateZ(20px);
   }
 
   .platform-base {
     @apply absolute bottom-0 left-0 w-full h-full rounded-xl;
     background: linear-gradient(45deg, #cbd5e1, #e2e8f0);
-    transform: translateZ(-2px) scale(1.02);
+    transform: translateY(4px);
     z-index: -1;
   }
 
