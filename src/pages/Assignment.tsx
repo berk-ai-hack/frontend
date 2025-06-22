@@ -18,12 +18,41 @@ const Assignment = () => {
   const [gradingCriteria, setGradingCriteria] = useState("");
   const [isAutoGrading, setIsAutoGrading] = useState(false);
 
-  const {
-    assignmentName = "Problem Set 1: Vector Operations and Linear Combinations",
-    className = "Linear Algebra",
-    classCode = "MATH54",
-    assignmentId = 1,
-  } = location.state || {};
+  // Get assignment details from location.state or localStorage
+  const getAssignmentDetails = () => {
+    if (location.state) {
+      // If location.state is available, use it and save to localStorage
+      const details = {
+        assignmentName: location.state.assignmentName || "Problem Set 1: Vector Operations and Linear Combinations",
+        className: location.state.className || "Linear Algebra",
+        classCode: location.state.classCode || "MATH54",
+        assignmentId: location.state.assignmentId || 1,
+        classId: location.state.classId || 1,
+      };
+      localStorage.setItem(`assignment_details_${id}`, JSON.stringify(details));
+      return details;
+    } else {
+      // If location.state is missing, try to load from localStorage
+      try {
+        const saved = localStorage.getItem(`assignment_details_${id}`);
+        if (saved) {
+          return JSON.parse(saved);
+        }
+      } catch (error) {
+        console.error('Error loading assignment details from localStorage:', error);
+      }
+      // Fallback to defaults if nothing is saved
+      return {
+        assignmentName: "Problem Set 1: Vector Operations and Linear Combinations",
+        className: "Linear Algebra",
+        classCode: "MATH54",
+        assignmentId: 1,
+        classId: 1,
+      };
+    }
+  };
+
+  const { assignmentName, className, classCode, assignmentId, classId } = getAssignmentDetails();
 
   const [autoGradingStates, setAutoGradingStates] = useState<{ [key: number]: 'idle' | 'processing' | 'completed' | 'error' }>(() => {
     // Load saved auto-grading states from localStorage
@@ -226,7 +255,7 @@ const Assignment = () => {
     setIsAutoGrading(false);
   };
 
-  const autoGradeStudent = async (studentIndex: number, student: any) => {
+  const autoGradeStudent = async (studentIndex: number, student: { id: number; name: string; submissionUrl: string; submittedAt: string; status: string }) => {
     const maxRetries = 5;
     let lastError: Error | null = null;
 
@@ -305,7 +334,7 @@ const Assignment = () => {
           {/* Back Button and Page Header */}
           <div className="mb-8">
             <Button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate(`/class/${classId}`)}
               variant="ghost"
               className="mb-4 text-gray-600 hover:text-gray-900"
             >

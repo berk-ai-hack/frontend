@@ -1,6 +1,60 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Mic, Check, RotateCcw, Send, Volume2, Loader2 } from "lucide-react";
+
+// Web Speech API types
+declare global {
+  interface Window {
+    SpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: typeof SpeechRecognition;
+  }
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onstart: ((this: SpeechRecognition, ev: Event) => void) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => void) | null;
+  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void) | null;
+  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => void) | null;
+}
+
+interface SpeechRecognitionEvent extends Event {
+  readonly results: SpeechRecognitionResultList;
+  readonly resultIndex: number;
+}
+
+interface SpeechRecognitionResultList {
+  readonly length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  readonly length: number;
+  readonly isFinal: boolean;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionAlternative {
+  readonly transcript: string;
+  readonly confidence: number;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  readonly error: string;
+  readonly message: string;
+}
+
+declare const SpeechRecognition: {
+  prototype: SpeechRecognition;
+  new(): SpeechRecognition;
+};
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
@@ -14,6 +68,8 @@ const GradingPreview = () => {
   const [feedback, setFeedback] = useState("");
   const [professorInput, setProfessorInput] = useState("");
   const [isModifyingFeedback, setIsModifyingFeedback] = useState(false);
+  const [isRecordingForModify, setIsRecordingForModify] = useState(false);
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
 
   const {
     assignmentName = "Programming Assignment 1: Hello World",
@@ -30,16 +86,53 @@ const GradingPreview = () => {
   // Determine if this is a Reading and Composition assignment
   const isReadingAndComposition = className === "Reading and Composition";
   
-  // Get the essay PDF path based on essayNumber (or assignmentId as fallback)
+  // Get the essay PDF path based on current student for Reading and Composition
   const getEssayPath = () => {
-    const num = essayNumber || assignmentId;
-    if (isReadingAndComposition && num >= 1 && num <= 5) {
-      return `/essays/essay${num}.pdf`;
+    if (isReadingAndComposition) {
+      // For Reading and Composition, each student has a different essay
+      // Map students to different essays (cycling through essay1-5)
+      const essayNum = ((currentStudent - 1) % 5) + 1;
+      return `/essays/essay${essayNum}.pdf`;
     }
     return null;
   };
 
-  const essayPath = getEssayPath();
+  const [essayPath, setEssayPath] = useState(getEssayPath());
+
+  // Update essay path when current student changes
+  useEffect(() => {
+    setEssayPath(getEssayPath());
+  }, [currentStudent, isReadingAndComposition]);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (SpeechRecognitionAPI) {
+      const recognitionInstance = new SpeechRecognitionAPI();
+      recognitionInstance.continuous = true;
+      recognitionInstance.interimResults = true;
+      recognitionInstance.lang = 'en-US';
+      
+      setRecognition(recognitionInstance);
+    }
+
+    // Cleanup function
+    return () => {
+      if (recognition) {
+        recognition.stop();
+      }
+    };
+  }, []);
+
+  // Cleanup speech recognition on unmount
+  useEffect(() => {
+    return () => {
+      if (recognition && isRecordingForModify) {
+        recognition.stop();
+      }
+    };
+  }, [recognition, isRecordingForModify]);
 
   // Load saved AI feedback for this student
   const getSavedAIFeedback = () => {
@@ -188,6 +281,73 @@ const GradingPreview = () => {
     });
   };
 
+  // Speech recognition handlers for modifying AI feedback
+  const handleStartSpeechRecognition = () => {
+    if (!recognition) {
+      toast({
+        title: "Speech Recognition Not Available",
+        description: "Your browser doesn't support speech recognition.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsRecordingForModify(true);
+    
+    recognition.onstart = () => {
+      toast({
+        title: "Recording Started",
+        description: "Speak your modification request...",
+      });
+    };
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let transcript = '';
+
+      // Combine all results to get the complete transcript
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+
+      // Update the input with the current transcript
+      setProfessorInput(transcript);
+    };
+
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      setIsRecordingForModify(false);
+      toast({
+        title: "Speech Recognition Error",
+        description: `Error: ${event.error}`,
+        variant: "destructive",
+      });
+    };
+
+    recognition.onend = () => {
+      setIsRecordingForModify(false);
+      toast({
+        title: "Recording Stopped",
+        description: "Speech has been transcribed to text.",
+      });
+    };
+
+    try {
+      recognition.start();
+    } catch (error) {
+      setIsRecordingForModify(false);
+      toast({
+        title: "Recording Failed",
+        description: "Failed to start speech recognition.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleStopSpeechRecognition = () => {
+    if (recognition && isRecordingForModify) {
+      recognition.stop();
+    }
+  };
+
   const handleAskAIToModify = async () => {
     if (!professorInput.trim()) {
       toast({
@@ -293,7 +453,7 @@ const GradingPreview = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 relative">
+    <div className="h-screen bg-white text-gray-900 relative overflow-hidden">
       {/* Backdrop Background */}
       <div className="fixed inset-0 z-0 opacity-5">
         <img
@@ -304,12 +464,14 @@ const GradingPreview = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10">
+      <div className="relative z-10 h-full flex flex-col">
         {/* Header */}
-        <Navigation />
+        <div className="flex-shrink-0">
+          <Navigation />
+        </div>
 
         {/* Progress Bar */}
-        <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200">
+        <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 flex-shrink-0">
           <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-3">
@@ -368,21 +530,20 @@ const GradingPreview = () => {
         </div>
 
         {/* Main Content - Split Layout */}
-        <div className="flex h-screen">
+        <div className="flex flex-1 overflow-hidden">
           {/* Left Half - PDF Viewer */}
-          <div className="w-1/2 bg-white/90 backdrop-blur-sm border-r border-gray-200">
-            <div className="h-full flex flex-col">
-              <div className="p-4 border-b border-gray-200 bg-gray-50/50">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {studentName}'s Submission
-                </h2>
-                <p className="text-sm text-gray-600">
-                  Assignment: {assignmentName}
-                </p>
-              </div>
+          <div className="w-1/2 bg-white/90 backdrop-blur-sm border-r border-gray-200 flex flex-col">
+            <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-gray-50/50">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {studentName}'s Submission
+              </h2>
+              <p className="text-sm text-gray-600">
+                Assignment: {assignmentName}
+              </p>
+            </div>
 
-              {/* PDF Viewer - Conditional Content */}
-              <div className="flex-1 bg-gray-100/50 overflow-y-auto p-4">
+            {/* PDF Viewer - Conditional Content */}
+            <div className="flex-1 bg-gray-100/50 overflow-y-auto p-4">
                 {essayPath ? (
                   // Display essay PDF for Reading and Composition
                   <div className="bg-white/90 backdrop-blur-sm shadow-lg rounded-lg p-6 max-w-full mx-auto border border-gray-200 h-full">
@@ -397,6 +558,7 @@ const GradingPreview = () => {
                     
                     <div className="flex-1 h-full">
                       <iframe
+                        key={`essay-${currentStudent}`}
                         src={essayPath}
                         className="w-full h-full min-h-[600px] border border-gray-200 rounded"
                         title={`${studentName}'s Essay - ${assignmentName}`}
@@ -590,22 +752,21 @@ const GradingPreview = () => {
                 )}
               </div>
             </div>
-          </div>
 
           {/* Right Half - Split into Top and Bottom */}
           <div className="w-1/2 flex flex-col">
-            {/* Top Right - AI Feedback and Grade */}
-            <div className="h-1/2 bg-white/90 backdrop-blur-sm border-b border-gray-200 flex">
+            {/* Top Right - AI Feedback and Grade (60% height) */}
+            <div className="h-[58%] bg-white/90 backdrop-blur-sm border-b border-gray-200 flex">
               {/* AI Feedback Section */}
               <div className="flex-1">
-                <Card className="h-full border border-gray-200 bg-white/90 backdrop-blur-sm rounded-none">
-                  <CardHeader className="pb-3">
+                <Card className="h-full border border-gray-200 bg-white/90 backdrop-blur-sm rounded-none flex flex-col">
+                  <CardHeader className="pb-3 flex-shrink-0">
                     <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
                       <div
                         className="h-2 w-2 rounded-full mr-2"
                         style={{ backgroundColor: "#0077fe" }}
                       ></div>
-                      AI-Generated Feedback
+                      Teachers Pet's Feedback
                       {savedAIFeedback && (
                         <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                           Auto-Graded
@@ -613,7 +774,7 @@ const GradingPreview = () => {
                       )}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="h-full overflow-y-auto">
+                  <CardContent className="flex-1 overflow-y-auto p-4">
                     <div className="prose prose-sm max-w-none">
                       {aiFeedback ? (
                         <div className="text-sm text-gray-700">
@@ -731,29 +892,50 @@ const GradingPreview = () => {
               )}
             </div>
 
-            {/* Bottom Right - Feedback Controls */}
-            <div className="h-1/2 bg-gray-50/50">
-              <Card className="h-full border border-gray-200 bg-white/90 backdrop-blur-sm rounded-none">
-                <CardHeader className="pb-3">
+            {/* Bottom Right - Feedback Controls (40% height) */}
+            <div className="h-[42%] bg-gray-50/50">
+              <Card className="h-full border border-gray-200 bg-white/90 backdrop-blur-sm rounded-none flex flex-col">
+                <CardHeader className="pb-3 flex-shrink-0">
                   <CardTitle className="text-lg font-semibold text-gray-900">
                     Voice Feedback Controls
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="flex flex-col h-full">
+                <CardContent className="flex flex-col flex-1">
                   {/* Recording Controls */}
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {/* AI Feedback Modification Section */}
                     {savedAIFeedback && (
-                      <div className="space-y-3 p-4 border border-gray-200 rounded-lg bg-gray-50/50">
+                                              <div className="space-y-2 p-3 border border-gray-200 rounded-lg bg-gray-50/50">
                         <h4 className="text-sm font-medium text-gray-900">Modify AI Feedback</h4>
                         <div className="space-y-2">
-                          <textarea
-                            value={professorInput}
-                            onChange={(e) => setProfessorInput(e.target.value)}
-                            placeholder="Enter your modification request for the AI feedback..."
-                            className="w-full p-2 text-sm border border-gray-300 rounded-md resize-none"
-                            rows={3}
-                          />
+                          <div className="relative">
+                            <textarea
+                              value={professorInput}
+                              onChange={(e) => setProfessorInput(e.target.value)}
+                              placeholder="Enter your modification request for the AI feedback..."
+                              className="w-full p-2 pr-12 text-sm border border-gray-300 rounded-md resize-none"
+                              rows={2}
+                            />
+                            <Button
+                              onClick={isRecordingForModify ? handleStopSpeechRecognition : handleStartSpeechRecognition}
+                              className={`absolute right-2 top-2 w-8 h-8 rounded-md ${
+                                isRecordingForModify ? "animate-pulse" : ""
+                              }`}
+                              style={{
+                                backgroundColor: isRecordingForModify ? "#ef4444" : "#0077fe",
+                                color: "white",
+                              }}
+                              title={isRecordingForModify ? "Stop recording" : "Start voice recording"}
+                            >
+                              <Mic className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          {isRecordingForModify && (
+                            <div className="flex items-center text-xs text-red-600">
+                              <div className="w-2 h-2 bg-red-600 rounded-full mr-2 animate-pulse"></div>
+                              Recording... Click mic to stop
+                            </div>
+                          )}
                           <Button
                             onClick={handleAskAIToModify}
                             disabled={!professorInput.trim() || isModifyingFeedback}
@@ -773,33 +955,7 @@ const GradingPreview = () => {
                       </div>
                     )}
 
-                    {!hasRecording ? (
-                      <div className="text-center">
-                        <Button
-                          onClick={
-                            isRecording
-                              ? handleStopRecording
-                              : handleStartRecording
-                          }
-                          className={`w-16 h-16 rounded-lg ${
-                            isRecording ? "animate-pulse" : ""
-                          }`}
-                          style={{
-                            backgroundColor: isRecording
-                              ? "#ef4444"
-                              : "#0077fe",
-                            color: "white",
-                          }}
-                        >
-                          <Mic className="h-8 w-8" />
-                        </Button>
-                        <p className="mt-2 text-sm text-gray-600">
-                          {isRecording
-                            ? "Recording... Click to stop"
-                            : "Click to start recording"}
-                        </p>
-                      </div>
-                    ) : (
+                    {hasRecording && (
                       <div className="space-y-4">
                         {/* Recorded Feedback Display */}
                         <div
@@ -869,24 +1025,26 @@ const GradingPreview = () => {
                   </div>
 
                   {/* Bottom Action Buttons */}
-                  <div className="mt-auto pt-6 space-y-3">
-                    <Button
-                      onClick={handleAcceptFeedback}
-                      className="w-full py-3 text-white"
-                      style={{ backgroundColor: "#FDB515" }}
-                    >
-                      <Check className="h-5 w-5 mr-2" />
-                      Accept AI Feedback & Continue
-                    </Button>
+                  <div className="mt-4 pt-2">
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleAcceptFeedback}
+                        className="flex-1 py-2 text-white text-sm"
+                        style={{ backgroundColor: "#FDB515" }}
+                      >
+                        <Check className="h-4 w-4 mr-2" />
+                        Accept AI Feedback & Continue
+                      </Button>
 
-                    <Button
-                      onClick={handleRestart}
-                      variant="outline"
-                      className="w-full border-gray-300 py-3"
-                    >
-                      <RotateCcw className="h-5 w-5 mr-2" />
-                      Restart Grading
-                    </Button>
+                      <Button
+                        onClick={handleRestart}
+                        variant="outline"
+                        className="flex-1 border-gray-300 py-2 text-sm"
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Restart Grading
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
