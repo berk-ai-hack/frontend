@@ -151,4 +151,67 @@
       stroke-dashoffset: 0;
     }
   }
+
+  /* Smooth floating animation with equal movement in all directions */
+  @keyframes float {
+    0%,
+    100% {
+      transform: perspective(1000px) rotateY(-10deg) rotateX(2deg)
+        translateZ(10px) translateX(0px) translateY(0px);
+    }
+    25% {
+      transform: perspective(1000px) rotateY(-8deg) rotateX(4deg)
+        translateZ(20px) translateX(8px) translateY(-8px);
+    }
+    50% {
+      transform: perspective(1000px) rotateY(-12deg) rotateX(0deg)
+        translateZ(5px) translateX(-5px) translateY(-5px);
+    }
+    75% {
+      transform: perspective(1000px) rotateY(-6deg) rotateX(6deg)
+        translateZ(15px) translateX(-8px) translateY(8px);
+    }
+  }
+
+  /* Wiggle animation for more dynamic movement */
+  @keyframes wiggle {
+    0%,
+    100% {
+      transform: perspective(1000px) rotateY(-10deg) rotateX(2deg)
+        translateZ(10px) rotateZ(0deg);
+    }
+    25% {
+      transform: perspective(1000px) rotateY(-5deg) rotateX(8deg)
+        translateZ(25px) rotateZ(2deg);
+    }
+    50% {
+      transform: perspective(1000px) rotateY(-15deg) rotateX(-3deg)
+        translateZ(5px) rotateZ(-3deg);
+    }
+    75% {
+      transform: perspective(1000px) rotateY(-8deg) rotateX(6deg)
+        translateZ(20px) rotateZ(1deg);
+    }
+  }
+
+  /* Alternative bouncy animation */
+  @keyframes bounce {
+    0%,
+    100% {
+      transform: perspective(1000px) rotateY(-10deg) rotateX(2deg)
+        translateZ(10px) translateY(0px);
+    }
+    25% {
+      transform: perspective(1000px) rotateY(-8deg) rotateX(5deg)
+        translateZ(20px) translateY(-15px);
+    }
+    50% {
+      transform: perspective(1000px) rotateY(-12deg) rotateX(-2deg)
+        translateZ(5px) translateY(-5px);
+    }
+    75% {
+      transform: perspective(1000px) rotateY(-6deg) rotateX(8deg)
+        translateZ(25px) translateY(-20px);
+    }
+  }
 }
