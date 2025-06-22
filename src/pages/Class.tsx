@@ -34,8 +34,11 @@ const Class = () => {
 
   // Function to get class details with localStorage persistence
   const getClassDetails = () => {
-    const stateData = location.state as { className?: string; classCode?: string } | null;
-    
+    const stateData = location.state as {
+      className?: string;
+      classCode?: string;
+    } | null;
+
     if (stateData && stateData.className && stateData.classCode) {
       // Save to localStorage when we have valid state
       const classDetails = {
@@ -45,21 +48,21 @@ const Class = () => {
       localStorage.setItem(`class_details_${id}`, JSON.stringify(classDetails));
       return classDetails;
     }
-    
+
     // Try to load from localStorage
     const savedData = localStorage.getItem(`class_details_${id}`);
     if (savedData) {
       try {
         return JSON.parse(savedData);
       } catch (error) {
-        console.error('Error parsing class details from localStorage:', error);
+        console.error("Error parsing class details from localStorage:", error);
       }
     }
-    
+
     // Fallback defaults
     return {
       className: "Linear Algebra",
-      classCode: "MATH54"
+      classCode: "MATH54",
     };
   };
 
@@ -464,17 +467,20 @@ const Class = () => {
                       className="text-lg font-semibold text-gray-900 mb-4"
                       style={{ color: "#0077fe" }}
                     >
-                      {className === "Reading and Composition" || className === "Comparative Literature" 
-                        ? "Essays & Papers" 
+                      {className === "Reading and Composition" ||
+                      className === "Comparative Literature"
+                        ? "Essays & Papers"
                         : "Homeworks"}
                     </h3>
                     <div className="space-y-3">
                       {sortedAssignments
-                        .filter(
-                          (assignment) => 
-                            className === "Reading and Composition" || className === "Comparative Literature"
-                              ? ["Essay", "Research Paper"].includes(assignment.type)
-                              : assignment.type === "Problem Set"
+                        .filter((assignment) =>
+                          className === "Reading and Composition" ||
+                          className === "Comparative Literature"
+                            ? ["Essay", "Research Paper"].includes(
+                                assignment.type
+                              )
+                            : assignment.type === "Problem Set"
                         )
                         .map((assignment) => (
                           <div

@@ -80,7 +80,7 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: 215 20.2% 65.1%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -99,5 +99,50 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Custom styles for HowItWorks page */
+@layer components {
+  .platform {
+    @apply rounded-xl bg-white/70 backdrop-blur-sm transition-all duration-300;
+    transform-style: preserve-3d;
+    transform: rotateX(45deg) rotateZ(-35deg) scale(0.8);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    z-index: 10;
+  }
+  .platform:hover {
+    transform: rotateX(45deg) rotateZ(-35deg) scale(0.85) translateY(-20px);
+    box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
+  }
+
+  .platform-content {
+    @apply p-6;
+    transform: translateZ(20px);
+  }
+
+  .platform-base {
+    @apply absolute bottom-0 left-0 w-full h-full rounded-xl;
+    background: linear-gradient(45deg, #cbd5e1, #e2e8f0);
+    transform: translateZ(-2px) scale(1.02);
+    z-index: -1;
+  }
+
+  .chip {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800;
+  }
+
+  #connector-1,
+  #connector-2 {
+    animation: dash 5s linear infinite;
+  }
+
+  @keyframes dash {
+    from {
+      stroke-dashoffset: 1000;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
   }
 }

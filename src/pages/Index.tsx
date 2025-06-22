@@ -72,7 +72,10 @@ const Index = () => {
                 >
                   Features
                 </span>
-                <span className="text-gray-600 hover:text-gray-900 cursor-pointer">
+                <span
+                  className="text-gray-600 hover:text-gray-900 cursor-pointer"
+                  onClick={() => navigate("/how-it-works")}
+                >
                   How It Works
                 </span>
                 <span
@@ -119,14 +122,17 @@ const Index = () => {
               </div>
 
               <h1 className="text-5xl font-bold mb-4 leading-tight">
-                Your AI
+                <span style={{ color: "#FDB515" }}>We Fetch</span>
+                <span style={{ color: "#6B7280" }}>.</span>
                 <br />
-                <span style={{ color: "#0077fe" }}>Grading Assistant</span>
+                <span style={{ color: "#0077fe" }}>You Teach</span>
+                <span style={{ color: "#6B7280" }}>.</span>
               </h1>
 
               <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                Teacher's Pet gives you a real-time pulse on your students. No
-                bullsh*t meetings. No manual updates.
+                Teacher's Pet is an AI agent that frees teachers from
+                repetitive, tiring work so they can focus on what matters most —
+                teaching.
               </p>
 
               <div className="mb-6">
@@ -140,7 +146,7 @@ const Index = () => {
               </div>
 
               <p className="text-sm text-gray-500">
-                FERPA Compliant | Zero Data Retention
+                FERPA Compliant | COPPA Compliant
               </p>
             </div>
 

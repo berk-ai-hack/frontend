@@ -28,7 +28,7 @@ const About = () => {
               className="text-5xl font-bold mb-6"
               style={{ color: "#0077fe" }}
             >
-              About Teacher's Pet
+              Our Team
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               We're students who've dealt with both the pain of grading, and
@@ -68,7 +68,7 @@ const About = () => {
               >
                 Harsh Dadhich
               </h3>
-              <p className="text-gray-500">MEng @ UCLA</p>
+              <p className="text-gray-500">MEng DS @ UCLA</p>
             </div>
 
             {/* Vighanesh Sharma */}
@@ -84,7 +84,7 @@ const About = () => {
               >
                 Vighanesh Sharma
               </h3>
-              <p className="text-gray-500">MSCS @ UT Dallas</p>
+              <p className="text-gray-500">MS CS @ UT Dallas</p>
             </div>
 
             {/* Nikhil Hooda */}

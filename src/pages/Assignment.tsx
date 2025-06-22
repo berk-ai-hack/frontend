@@ -2,7 +2,13 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, FileText, Play, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import Navigation from "@/components/Navigation";
@@ -23,7 +29,9 @@ const Assignment = () => {
     if (location.state) {
       // If location.state is available, use it and save to localStorage
       const details = {
-        assignmentName: location.state.assignmentName || "Problem Set 1: Vector Operations and Linear Combinations",
+        assignmentName:
+          location.state.assignmentName ||
+          "Problem Set 1: Vector Operations and Linear Combinations",
         className: location.state.className || "Linear Algebra",
         classCode: location.state.classCode || "MATH54",
         assignmentId: location.state.assignmentId || 1,
@@ -39,11 +47,15 @@ const Assignment = () => {
           return JSON.parse(saved);
         }
       } catch (error) {
-        console.error('Error loading assignment details from localStorage:', error);
+        console.error(
+          "Error loading assignment details from localStorage:",
+          error
+        );
       }
       // Fallback to defaults if nothing is saved
       return {
-        assignmentName: "Problem Set 1: Vector Operations and Linear Combinations",
+        assignmentName:
+          "Problem Set 1: Vector Operations and Linear Combinations",
         className: "Linear Algebra",
         classCode: "MATH54",
         assignmentId: 1,
@@ -52,15 +64,20 @@ const Assignment = () => {
     }
   };
 
-  const { assignmentName, className, classCode, assignmentId, classId } = getAssignmentDetails();
+  const { assignmentName, className, classCode, assignmentId, classId } =
+    getAssignmentDetails();
 
-  const [autoGradingStates, setAutoGradingStates] = useState<{ [key: number]: 'idle' | 'processing' | 'completed' | 'error' }>(() => {
+  const [autoGradingStates, setAutoGradingStates] = useState<{
+    [key: number]: "idle" | "processing" | "completed" | "error";
+  }>(() => {
     // Load saved auto-grading states from localStorage
     const saved = localStorage.getItem(`autoGradingStates_${assignmentId}`);
     return saved ? JSON.parse(saved) : {};
   });
 
-  const [autoGradingFeedback, setAutoGradingFeedback] = useState<{ [key: number]: string }>(() => {
+  const [autoGradingFeedback, setAutoGradingFeedback] = useState<{
+    [key: number]: string;
+  }>(() => {
     // Load saved auto-grading feedback from localStorage
     const saved = localStorage.getItem(`autoGradingFeedback_${assignmentId}`);
     return saved ? JSON.parse(saved) : {};
@@ -91,8 +108,13 @@ const Assignment = () => {
   }));
 
   // Helper function to save auto-grading states to localStorage
-  const saveAutoGradingStates = (states: { [key: number]: 'idle' | 'processing' | 'completed' | 'error' }) => {
-    localStorage.setItem(`autoGradingStates_${assignmentId}`, JSON.stringify(states));
+  const saveAutoGradingStates = (states: {
+    [key: number]: "idle" | "processing" | "completed" | "error";
+  }) => {
+    localStorage.setItem(
+      `autoGradingStates_${assignmentId}`,
+      JSON.stringify(states)
+    );
   };
 
   // Helper function to clear saved auto-grading states
@@ -102,7 +124,10 @@ const Assignment = () => {
 
   // Helper function to save auto-grading feedback to localStorage
   const saveAutoGradingFeedback = (feedback: { [key: number]: string }) => {
-    localStorage.setItem(`autoGradingFeedback_${assignmentId}`, JSON.stringify(feedback));
+    localStorage.setItem(
+      `autoGradingFeedback_${assignmentId}`,
+      JSON.stringify(feedback)
+    );
   };
 
   // Helper function to clear saved auto-grading feedback
@@ -112,13 +137,13 @@ const Assignment = () => {
 
   // Function to extract grade from AI feedback
   const extractGrade = (feedback: string) => {
-    console.log('Extracting grade from feedback:', feedback);
+    console.log("Extracting grade from feedback:", feedback);
     const gradeMatch = feedback.match(/Grade:\s*(.*)/i);
-    console.log('Grade match result:', gradeMatch);
+    console.log("Grade match result:", gradeMatch);
     if (gradeMatch) {
       const grade = gradeMatch[1].trim(); // Returns everything after "Grade:" trimmed
       // Remove any characters after the closing parenthesis
-      const cleanGrade = grade.replace(/\).*$/, ')');
+      const cleanGrade = grade.replace(/\).*$/, ")");
       return cleanGrade;
     }
     return null;
@@ -126,16 +151,21 @@ const Assignment = () => {
 
   // Function to save grades to localStorage
   const saveGrades = (grades: { [key: number]: string }) => {
-    localStorage.setItem(`autoGradingGrades_${assignmentId}`, JSON.stringify(grades));
+    localStorage.setItem(
+      `autoGradingGrades_${assignmentId}`,
+      JSON.stringify(grades)
+    );
   };
 
   // Function to load grades from localStorage
   const loadGrades = () => {
     try {
-      const gradesData = localStorage.getItem(`autoGradingGrades_${assignmentId}`);
+      const gradesData = localStorage.getItem(
+        `autoGradingGrades_${assignmentId}`
+      );
       return gradesData ? JSON.parse(gradesData) : {};
     } catch (error) {
-      console.error('Error loading grades:', error);
+      console.error("Error loading grades:", error);
       return {};
     }
   };
@@ -146,12 +176,14 @@ const Assignment = () => {
   // Function to reload grades from localStorage (memoized)
   const reloadGrades = useCallback(() => {
     try {
-      const gradesData = localStorage.getItem(`autoGradingGrades_${assignmentId}`);
+      const gradesData = localStorage.getItem(
+        `autoGradingGrades_${assignmentId}`
+      );
       if (gradesData) {
         setGrades(JSON.parse(gradesData));
       }
     } catch (error) {
-      console.error('Error reloading grades:', error);
+      console.error("Error reloading grades:", error);
     }
   }, [assignmentId]);
 
@@ -166,15 +198,19 @@ const Assignment = () => {
       reloadGrades();
     };
 
-    window.addEventListener('focus', handleFocus);
+    window.addEventListener("focus", handleFocus);
     return () => {
-      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener("focus", handleFocus);
     };
   }, [assignmentId]);
 
   // Wrapper function to update auto-grading states and save them
-  const updateAutoGradingStates = (updater: (prev: { [key: number]: 'idle' | 'processing' | 'completed' | 'error' }) => { [key: number]: 'idle' | 'processing' | 'completed' | 'error' }) => {
-    setAutoGradingStates(prev => {
+  const updateAutoGradingStates = (
+    updater: (prev: {
+      [key: number]: "idle" | "processing" | "completed" | "error";
+    }) => { [key: number]: "idle" | "processing" | "completed" | "error" }
+  ) => {
+    setAutoGradingStates((prev) => {
       const newStates = updater(prev);
       saveAutoGradingStates(newStates);
       return newStates;
@@ -182,8 +218,10 @@ const Assignment = () => {
   };
 
   // Wrapper function to update auto-grading feedback and save it
-  const updateAutoGradingFeedback = (updater: (prev: { [key: number]: string }) => { [key: number]: string }) => {
-    setAutoGradingFeedback(prev => {
+  const updateAutoGradingFeedback = (
+    updater: (prev: { [key: number]: string }) => { [key: number]: string }
+  ) => {
+    setAutoGradingFeedback((prev) => {
       const newFeedback = updater(prev);
       saveAutoGradingFeedback(newFeedback);
       return newFeedback;
@@ -214,17 +252,19 @@ const Assignment = () => {
 
     setShowAutoGradeDialog(false);
     setIsAutoGrading(true);
-    
+
     // Clear any previous auto-grading states for this assignment
     clearAutoGradingStates();
     clearAutoGradingFeedback();
-    
+
     // Initialize all students to processing state
-    const initialStates: { [key: number]: 'idle' | 'processing' | 'completed' | 'error' } = {};
+    const initialStates: {
+      [key: number]: "idle" | "processing" | "completed" | "error";
+    } = {};
     students.forEach((_, index) => {
-      initialStates[index] = 'processing';
+      initialStates[index] = "processing";
     });
-    updateAutoGradingStates(prev => initialStates);
+    updateAutoGradingStates((prev) => initialStates);
     setAutoGradingFeedback({});
 
     // Process each student sequentially
@@ -233,85 +273,120 @@ const Assignment = () => {
         const result = await autoGradeStudent(i, students[i]);
         if (result.success) {
           // Save the AI feedback
-          updateAutoGradingFeedback(prev => ({ ...prev, [i]: result.feedback }));
-          
+          updateAutoGradingFeedback((prev) => ({
+            ...prev,
+            [i]: result.feedback,
+          }));
+
           // Extract and save the grade
           const extractedGrade = extractGrade(result.feedback);
           if (extractedGrade) {
-            setGrades(prev => {
+            setGrades((prev) => {
               const newGrades = { ...prev, [i]: extractedGrade };
               saveGrades(newGrades);
               return newGrades;
             });
           }
         }
-        updateAutoGradingStates(prev => ({ ...prev, [i]: 'completed' }));
+        updateAutoGradingStates((prev) => ({ ...prev, [i]: "completed" }));
       } catch (error) {
         console.error(`Error auto-grading student ${i + 1}:`, error);
-        updateAutoGradingStates(prev => ({ ...prev, [i]: 'error' }));
+        updateAutoGradingStates((prev) => ({ ...prev, [i]: "error" }));
       }
     }
 
     setIsAutoGrading(false);
   };
 
-  const autoGradeStudent = async (studentIndex: number, student: { id: number; name: string; submissionUrl: string; submittedAt: string; status: string }) => {
+  const autoGradeStudent = async (
+    studentIndex: number,
+    student: {
+      id: number;
+      name: string;
+      submissionUrl: string;
+      submittedAt: string;
+      status: string;
+    }
+  ) => {
     const maxRetries = 5;
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`Auto-grading student ${studentIndex + 1}: ${student.name} (Attempt ${attempt}/${maxRetries})`);
-        console.log('Grading criteria:', gradingCriteria);
-        console.log('PDF file:', `/essays/essay${studentIndex + 1}.pdf`);
+        console.log(
+          `Auto-grading student ${studentIndex + 1}: ${
+            student.name
+          } (Attempt ${attempt}/${maxRetries})`
+        );
+        console.log("Grading criteria:", gradingCriteria);
+        console.log("PDF file:", `/essays/essay${studentIndex + 1}.pdf`);
 
         // Make actual HTTP call to prompt_initial API with file upload
         // Similar to Python: files={'pdf_file': (test_pdf_path, pdf_file, 'application/pdf')}
         const formData = new FormData();
-        
+
         // Fetch the PDF file from the public directory
         const pdfResponse = await fetch(`/essays/essay${studentIndex + 1}.pdf`);
         const pdfBlob = await pdfResponse.blob();
-        
+
         // Add the PDF file to FormData (equivalent to Python's files parameter)
-        formData.append('pdf_file', pdfBlob, `essay${studentIndex + 1}.pdf`);
-        
+        formData.append("pdf_file", pdfBlob, `essay${studentIndex + 1}.pdf`);
+
         // Add the explanation data (equivalent to Python's data parameter)
-        formData.append('explanation', gradingCriteria);
-        
-        const response = await fetch('http://localhost:5000/api/prompt_initial', {
-          method: 'POST',
-          body: formData
-          // Note: Don't set Content-Type header - browser will set it automatically with boundary for multipart/form-data
-        });
+        formData.append("explanation", gradingCriteria);
+
+        const response = await fetch(
+          "http://localhost:5000/api/prompt_initial",
+          {
+            method: "POST",
+            body: formData,
+            // Note: Don't set Content-Type header - browser will set it automatically with boundary for multipart/form-data
+          }
+        );
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const result = await response.json();
-        console.log('API Response:', result);
+        console.log("API Response:", result);
 
         // If we reach here, the API call was successful
-        console.log(`Successfully auto-graded student ${studentIndex + 1} on attempt ${attempt}`);
-        return { success: true, feedback: result.feedback || result.response || 'Feedback generated successfully' };
-
+        console.log(
+          `Successfully auto-graded student ${
+            studentIndex + 1
+          } on attempt ${attempt}`
+        );
+        return {
+          success: true,
+          feedback:
+            result.feedback ||
+            result.response ||
+            "Feedback generated successfully",
+        };
       } catch (error) {
         lastError = error as Error;
-        console.error(`Attempt ${attempt} failed for student ${studentIndex + 1}:`, error);
-        
+        console.error(
+          `Attempt ${attempt} failed for student ${studentIndex + 1}:`,
+          error
+        );
+
         // If this is not the last attempt, wait a bit before retrying
         if (attempt < maxRetries) {
           const retryDelay = 1000 + Math.random() * 2000; // 1-3 second delay between retries
           console.log(`Retrying in ${Math.round(retryDelay)}ms...`);
-          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
       }
     }
 
     // If we reach here, all attempts failed
-    console.error(`All ${maxRetries} attempts failed for student ${studentIndex + 1}`);
-    throw lastError || new Error('Auto-grading failed after all retry attempts');
+    console.error(
+      `All ${maxRetries} attempts failed for student ${studentIndex + 1}`
+    );
+    throw (
+      lastError || new Error("Auto-grading failed after all retry attempts")
+    );
   };
 
   return (
@@ -438,9 +513,7 @@ const Assignment = () => {
                         Processing
                       </span>
                     ) : (
-                      <>
-                        Graded
-                      </>
+                      <>Graded</>
                     )}
                   </p>
                 </div>
@@ -566,17 +639,18 @@ const Assignment = () => {
                               <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                               Processing
                             </span>
-                          ) : isAutoGrading && autoGradingStates[index] === 'processing' ? (
+                          ) : isAutoGrading &&
+                            autoGradingStates[index] === "processing" ? (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                               <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                               Auto Grading
                             </span>
-                          ) : autoGradingStates[index] === 'completed' ? (
+                          ) : autoGradingStates[index] === "completed" ? (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                               <CheckCircle className="h-3 w-3 mr-1" />
                               Auto Graded
                             </span>
-                          ) : autoGradingStates[index] === 'error' ? (
+                          ) : autoGradingStates[index] === "error" ? (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                               Auto Grade Failed
                             </span>
@@ -589,9 +663,7 @@ const Assignment = () => {
                               }`}
                             >
                               {student.status === "graded" ? (
-                                <>
-                                  Graded
-                                </>
+                                <>Graded</>
                               ) : (
                                 "Pending"
                               )}
@@ -627,7 +699,8 @@ const Assignment = () => {
                 className="mt-2 min-h-[120px]"
               />
               <p className="text-xs text-gray-500 mt-1">
-                This criteria will be sent to the AI grading system along with each student's PDF submission.
+                This criteria will be sent to the AI grading system along with
+                each student's PDF submission.
               </p>
             </div>
           </div>
