@@ -10,6 +10,7 @@ import {
   GitBranchPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Navigation from "@/components/Navigation";
 
 const HowItWorks = () => {
   const navigate = useNavigate();
@@ -25,38 +26,11 @@ const HowItWorks = () => {
         />
       </div>
 
+      {/* Header */}
+      <Navigation />
+
       {/* Content */}
       <div className="relative z-10">
-        {/* Header */}
-        <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div
-                className="flex items-center cursor-pointer"
-                onClick={() => navigate("/")}
-              >
-                <img
-                  src="/tpdog.svg"
-                  alt="Teacher's Pet Dog"
-                  className="h-8 w-auto mr-2"
-                />
-                <img
-                  src="/teacher_s pet logo.svg"
-                  alt="Teacher's Pet Logo"
-                  className="h-8 w-auto"
-                />
-              </div>
-              <Button
-                className="px-6 py-2 rounded-lg font-medium"
-                style={{ backgroundColor: "#FDB515", color: "white" }}
-                onClick={() => navigate("/login")}
-              >
-                Sign In
-              </Button>
-            </div>
-          </div>
-        </nav>
-
         {/* Main Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           {/* Page Title */}
