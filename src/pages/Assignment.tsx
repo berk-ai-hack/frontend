@@ -1,13 +1,5 @@
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  FileText,
-  Play,
-  CheckCircle,
-  Loader2,
-  XCircle,
-  AlertCircle,
-} from "lucide-react";
+import { ArrowLeft, FileText, Play, CheckCircle, Loader2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -32,6 +24,7 @@ const Assignment = () => {
   const [showAutoGradeDialog, setShowAutoGradeDialog] = useState(false);
   const [gradingCriteria, setGradingCriteria] = useState("");
   const [isAutoGrading, setIsAutoGrading] = useState(false);
+  const [uploadedRubric, setUploadedRubric] = useState<File | null>(null);
 
   // Get assignment details from location.state or localStorage
   const getAssignmentDetails = () => {
@@ -242,6 +235,30 @@ const Assignment = () => {
     setShowAutoGradeDialog(true);
   };
 
+  const handleCloseAutoGradeDialog = () => {
+    setShowAutoGradeDialog(false);
+    setUploadedRubric(null); // Reset uploaded rubric when dialog closes
+  };
+
+  const handleRubricUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.type === 'application/pdf') {
+        setUploadedRubric(file);
+        toast({
+          title: "Rubric Uploaded",
+          description: `${file.name} has been uploaded successfully.`,
+        });
+      } else {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload a PDF file.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   const handleResetAutoGradingStates = () => {
     clearAutoGradingStates();
     clearAutoGradingFeedback();
@@ -259,7 +276,7 @@ const Assignment = () => {
       return;
     }
 
-    setShowAutoGradeDialog(false);
+    handleCloseAutoGradeDialog();
     setIsAutoGrading(true);
 
     // Clear any previous auto-grading states for this assignment
@@ -342,11 +359,17 @@ const Assignment = () => {
         formData.append("pdf_file", pdfBlob, `essay${studentIndex + 1}.pdf`);
 
         // Add the explanation data (equivalent to Python's data parameter)
-        formData.append("explanation", gradingCriteria);
-
-        const response = await fetch(API_ENDPOINTS.PROMPT_INITIAL, {
-          method: "POST",
-          body: formData,
+        formData.append('explanation', gradingCriteria);
+        
+        // Add the uploaded rubric PDF if available
+        if (uploadedRubric) {
+          console.log('Including uploaded rubric:', uploadedRubric.name);
+          formData.append('rubric_file', uploadedRubric, uploadedRubric.name);
+        }
+        
+        const response = await fetch('http://localhost:5000/api/prompt_initial', {
+          method: 'POST',
+          body: formData
           // Note: Don't set Content-Type header - browser will set it automatically with boundary for multipart/form-data
         });
 
@@ -687,7 +710,7 @@ const Assignment = () => {
       </div>
 
       {/* Auto Grade Dialog */}
-      <Dialog open={showAutoGradeDialog} onOpenChange={setShowAutoGradeDialog}>
+      <Dialog open={showAutoGradeDialog} onOpenChange={handleCloseAutoGradeDialog}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Auto Grade Assignment</DialogTitle>
@@ -709,29 +732,78 @@ const Assignment = () => {
                 each student's PDF submission.
               </p>
             </div>
+            
+            <div>
+              <Label className="text-sm font-medium">
+                Rubric/Criteria PDF (Optional)
+              </Label>
+              <div className="mt-2">
+                {uploadedRubric ? (
+                  <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
+                    <div className="flex items-center space-x-2">
+                      <FileText className="h-4 w-4 text-gray-600" />
+                      <span className="text-sm text-gray-700">{uploadedRubric.name}</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setUploadedRubric(null)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center p-4 border-2 border-dashed border-gray-300 rounded-lg">
+                    <FileText className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600 mb-2">No rubric uploaded</p>
+                    <p className="text-xs text-gray-500">Upload a PDF rubric to provide additional grading context</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setShowAutoGradeDialog(false)}
+              onClick={handleCloseAutoGradeDialog}
               disabled={isAutoGrading}
             >
               Cancel
             </Button>
-            <Button
-              onClick={handleStartAutoGrading}
-              disabled={!gradingCriteria.trim() || isAutoGrading}
-              className="bg-green-600 text-white hover:bg-green-700"
-            >
-              {isAutoGrading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Starting...
-                </>
-              ) : (
-                "Start Auto Grading"
-              )}
-            </Button>
+            <div className="flex items-center space-x-2">
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={handleRubricUpload}
+                className="hidden"
+                id="rubric-upload"
+                disabled={isAutoGrading}
+              />
+              <Button
+                variant="outline"
+                onClick={() => document.getElementById('rubric-upload')?.click()}
+                disabled={isAutoGrading}
+                className="bg-blue-600 text-white hover:bg-blue-700 border-blue-600"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Rubric PDF
+              </Button>
+              <Button
+                onClick={handleStartAutoGrading}
+                disabled={!gradingCriteria.trim() || isAutoGrading}
+                className="bg-green-600 text-white hover:bg-green-700"
+              >
+                {isAutoGrading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Starting...
+                  </>
+                ) : (
+                  "Start Auto Grading"
+                )}
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
